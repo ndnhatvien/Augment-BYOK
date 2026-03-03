@@ -20,15 +20,18 @@ function patchTasklistAddTasksErrors(filePath) {
   // Patch: if any tasks fail, append failure summary; if all fail, return isError=true with details.
   next = replaceOnceRegex(
     next,
-    /async handleBatchCreation\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{[\s\S]*?let\s+([A-Za-z_$][\w$]*)=\[\];for\(let[\s\S]*?let\s+([A-Za-z_$][\w$]*)=V0\.formatBulkUpdateResponse\(Qk\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\);return\{\.\.\.xr\(\4\),plan:\6\}\}/g,
+    /async handleBatchCreation\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{[\s\S]*?let\s+([A-Za-z_$][\w$]*)=\[\];for\(let[\s\S]*?let\s+([A-Za-z_$][\w$]*)=([A-Za-z_$][\w$]*)\.formatBulkUpdateResponse\(([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\);return\{\.\.\.([A-Za-z_$][\w$]*)\(\4\),plan:\8\}\}/g,
     (m) => {
       const resultsVar = String(m[3] || "");
       const textVar = String(m[4] || "");
-      const beforeVar = String(m[5] || "");
-      const afterVar = String(m[6] || "");
+      const formatClass = String(m[5] || "");
+      const diffFunc = String(m[6] || "");
+      const beforeVar = String(m[7] || "");
+      const afterVar = String(m[8] || "");
+      const wrapFunc = String(m[9] || "");
       if (!resultsVar || !textVar || !beforeVar || !afterVar) throw new Error("tasklist add_tasks errors: capture missing");
 
-      const oldTail = `let ${textVar}=V0.formatBulkUpdateResponse(Qk(${beforeVar},${afterVar}));return{...xr(${textVar}),plan:${afterVar}}`;
+      const oldTail = `let ${textVar}=${formatClass}.formatBulkUpdateResponse(${diffFunc}(${beforeVar},${afterVar}));return{...${wrapFunc}(${textVar}),plan:${afterVar}}`;
       const insertion =
         `let __byok_failed=${resultsVar}.filter(t=>t&&t.success===!1);` +
         `if(__byok_failed.length){` +
@@ -36,11 +39,11 @@ function patchTasklistAddTasksErrors(filePath) {
         `let __byok_more=__byok_failed.length>10?"\\n… ("+String(__byok_failed.length-10)+" more)":"";
 ` +
         `let __byok_msg="\\n\\nTask creation failures ("+String(__byok_failed.length)+"/"+String(${resultsVar}.length)+"):\\n"+__byok_lines+__byok_more;` +
-        `if(__byok_failed.length===${resultsVar}.length)return{...it("Failed to add task(s)."+__byok_msg),plan:${afterVar}};` +
+        `if(__byok_failed.length===${resultsVar}.length)return{...et("Failed to add task(s)."+__byok_msg),plan:${afterVar}};` +
         `${textVar}+=__byok_msg;` +
         `}`;
 
-      const newTail = `let ${textVar}=V0.formatBulkUpdateResponse(Qk(${beforeVar},${afterVar}));${insertion}return{...xr(${textVar}),plan:${afterVar}}`;
+      const newTail = `let ${textVar}=${formatClass}.formatBulkUpdateResponse(${diffFunc}(${beforeVar},${afterVar}));${insertion}return{...${wrapFunc}(${textVar}),plan:${afterVar}}`;
       if (!m[0].includes(oldTail)) throw new Error("tasklist add_tasks errors: tail not found (upstream may have changed)");
       return m[0].replace(oldTail, newTail);
     },
