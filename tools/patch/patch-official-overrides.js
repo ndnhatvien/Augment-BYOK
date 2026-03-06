@@ -148,7 +148,7 @@ function patchAuthenticatedCallErrorMessages(src) {
 
   const res = replaceAllOrThrow(
     out,
-    /throw new ([a-z]+)\(`API call failed: \$\{([A-Za-z_$][0-9A-Za-z_$]*)\.statusText\}`,Ye\.Internal\)/g,
+    /throw new ([A-Za-z_$][0-9A-Za-z_$]*)\(`API call failed: \$\{([A-Za-z_$][0-9A-Za-z_$]*)\.statusText\}`,Ye\.Internal\)/g,
     "throw new $1(`API call failed: ${$2.status} ${$2.statusText} (${u.toString()})`,Ye.Internal)",
     "makeAuthenticatedCall error message include url"
   );
