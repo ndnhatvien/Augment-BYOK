@@ -42,16 +42,16 @@ function createHandlers({ vscode, ctx, cfgMgr, state, panel }) {
     reloadWindow: async () => {
       try {
         const pick = await vscode.window.showWarningMessage(
-          "这会重载 VS Code（用于真正重载插件/主面板）。建议优先选择“重启扩展宿主”。",
+          "This will reload VS Code (to fully reload extension/main panel). Recommended: Restart Extension Host first.",
           { modal: true },
-          "重启扩展宿主",
-          "重载窗口"
+          "Restart Extension Host",
+          "Reload Window"
         );
-        if (pick === "重启扩展宿主") {
+        if (pick === "Restart Extension Host") {
           await vscode.commands.executeCommand("workbench.action.restartExtensionHost");
           return;
         }
-        if (pick === "重载窗口") {
+        if (pick === "Reload Window") {
           await vscode.commands.executeCommand("workbench.action.reloadWindow");
           return;
         }
@@ -282,7 +282,7 @@ async function openConfigPanel({ vscode, ctx, cfgMgr, state }) {
     } catch (err) {
       const m = err instanceof Error ? err.message : String(err);
       warn("panel onDidReceiveMessage failed:", m);
-      postStatus(panel, "消息处理器异常（已忽略）。");
+      postStatus(panel, "Message handler exception (ignored).");
     }
   });
 

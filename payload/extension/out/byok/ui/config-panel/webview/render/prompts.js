@@ -36,8 +36,8 @@
               </span>
             </summary>
             <div class="endpoint-group-body">
-              <div class="text-muted text-xs">对单个 endpoint 追加 system prompt（留空=不追加）。</div>
-              <div class="text-muted text-xs">注：<span class="text-mono">/get-models</span> 不会使用 prompt（它只是模型列表）。</div>
+              <div class="text-muted text-xs">Append system prompt per endpoint (empty = no append).</div>
+              <div class="text-muted text-xs">Note: <span class="text-mono">/get-models</span> does not use prompts (it is only a model list).</div>
               <div style="height:10px;"></div>
               <div class="form-grid">
                 ${endpoints
@@ -71,14 +71,14 @@
 	          </div>
 	        </header>
 	        <div class="settings-panel__body">
-	          <div class="text-muted text-xs">这些提示词会被追加到 BYOK 上游模型的 system prompt（仅影响 BYOK，不影响 official）。</div>
-	          <div class="text-muted text-xs">全局规则/偏好请使用 Augment 自带的 User Guidelines / Workspace Guidelines / Rules；这里仅提供按 endpoint 的追加。</div>
+	          <div class="text-muted text-xs">These prompts are appended to BYOK upstream model system prompts (BYOK only, not official).</div>
+	          <div class="text-muted text-xs">For global rules/preferences, use Augment built-in User Guidelines / Workspace Guidelines / Rules; this panel only provides endpoint-level append.</div>
 	          <div style="height:10px;"></div>
 	          <div class="form-grid">
               <div class="form-group form-grid--full">
                 <div class="flex-row flex-wrap" style="gap:6px;align-items:center;">
-                  <button class="btn btn--small" data-action="promptsApplyRecommended" title="用推荐模板覆盖当前 Prompts（建议先导出备份）">一键填充（推荐）</button>
-                  <span class="text-muted text-xs">覆盖当前 endpoint overrides；刷新可撤销未保存修改。</span>
+                  <button class="btn btn--small" data-action="promptsApplyRecommended" title="Overwrite current Prompts with recommended templates (export backup first)">Apply Recommended</button>
+                  <span class="text-muted text-xs">Overwrite current endpoint overrides; Reload can revert unsaved changes.</span>
                 </div>
               </div>
 	            <div class="form-group form-grid--full">${overridesHtml}</div>

@@ -49,16 +49,16 @@ async function fetchModelsWithFallback({ urls, headers, timeoutMs, abortSignal, 
     const json = await resp.json().catch(() => null);
     const models = parseModelIds(json);
     if (models.length) return models;
-    throw new Error(`${label} 响应未包含可解析的 models 列表`);
+    throw new Error(`${label} response does not contain a parsable models list`);
   }
-  throw new Error(`${label} 失败（404 或无可用结果），tried=${tried.length}`);
+  throw new Error(`${label} failed (404 or no available result), tried=${tried.length}`);
 }
 
 async function fetchOpenAiCompatibleModels({ baseUrl, apiKey, extraHeaders, timeoutMs, abortSignal }) {
   const b = requireString(baseUrl, "OpenAI baseUrl");
   const key = normalizeRawToken(apiKey);
   const extra = extraHeaders && typeof extraHeaders === "object" ? extraHeaders : {};
-  if (!key && Object.keys(extra).length === 0) throw new Error("OpenAI apiKey 未配置（且 headers 为空）");
+  if (!key && Object.keys(extra).length === 0) throw new Error("OpenAI apiKey is not configured (and headers are empty)");
   const urls = [joinBaseUrl(b, "models")];
   if (!b.includes("/v1")) urls.push(joinBaseUrl(b, "v1/models"));
 
@@ -75,7 +75,7 @@ async function fetchAnthropicModels({ baseUrl, apiKey, extraHeaders, timeoutMs, 
   const b = requireString(baseUrl, "Anthropic baseUrl");
   const key = normalizeRawToken(apiKey);
   const extra = extraHeaders && typeof extraHeaders === "object" ? extraHeaders : {};
-  if (!key && Object.keys(extra).length === 0) throw new Error("Anthropic apiKey 未配置（且 headers 为空）");
+  if (!key && Object.keys(extra).length === 0) throw new Error("Anthropic apiKey is not configured (and headers are empty)");
   const urls = [joinBaseUrl(b, "models")];
   if (!b.includes("/v1")) urls.push(joinBaseUrl(b, "v1/models"));
 
@@ -92,7 +92,7 @@ async function fetchGeminiAiStudioModels({ baseUrl, apiKey, extraHeaders, timeou
   const b = requireString(baseUrl, "Gemini baseUrl");
   const key = normalizeRawToken(apiKey);
   const extra = extraHeaders && typeof extraHeaders === "object" ? extraHeaders : {};
-  if (!key && Object.keys(extra).length === 0) throw new Error("Gemini apiKey 未配置（且 headers 为空）");
+  if (!key && Object.keys(extra).length === 0) throw new Error("Gemini apiKey is not configured (and headers are empty)");
   const urls = [joinBaseUrl(b, "models")];
   if (!b.includes("/v1beta")) urls.push(joinBaseUrl(b, "v1beta/models"));
 
@@ -119,7 +119,7 @@ async function fetchGeminiAiStudioModels({ baseUrl, apiKey, extraHeaders, timeou
 }
 
 async function fetchProviderModels({ provider, timeoutMs, abortSignal }) {
-  if (!provider || typeof provider !== "object") throw new Error("provider 无效");
+  if (!provider || typeof provider !== "object") throw new Error("provider is invalid");
   const type = normalizeString(provider.type);
   const baseUrl = normalizeString(provider.baseUrl);
   const apiKey = normalizeString(provider.apiKey);
@@ -134,7 +134,7 @@ async function fetchProviderModels({ provider, timeoutMs, abortSignal }) {
     if (type === "openai_compatible" || type === "openai_responses") models = await fetchOpenAiCompatibleModels({ baseUrl, apiKey, extraHeaders, timeoutMs: t, abortSignal });
     else if (type === "anthropic") models = await fetchAnthropicModels({ baseUrl, apiKey, extraHeaders, timeoutMs: t, abortSignal });
     else if (type === "gemini_ai_studio") models = await fetchGeminiAiStudioModels({ baseUrl, apiKey, extraHeaders, timeoutMs: t, abortSignal });
-    else throw new Error(`未知 provider.type: ${type}（支持：${formatKnownProviderTypes()}）`);
+    else throw new Error(`Unknown provider.type: ${type} (supported: ${formatKnownProviderTypes()})`);
 
     debug(`[${label}] ok (${formatMs(nowMs() - t0)}) baseUrl=${baseUrlForLog(baseUrl)} models=${models.length}`);
     return models;

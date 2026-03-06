@@ -9,16 +9,16 @@
   const RECOMMENDED_PROMPTS_V1 = Object.freeze({
     endpointSystem: Object.freeze({
       "/chat": [
-        "默认使用简体中文回答（除非用户明确要求英文/日文等）。",
-        "优先级：正确性 > 最小改动 > 一致性；避免无关重构。",
-        "改代码时：移除死代码/旧逻辑/重复逻辑；保持现有风格与接口不变；必要时补齐测试与文档。",
-        "输出：先给结论/下一步，再给必要细节；不确定时先问澄清问题。"
+        "Answer in the user's language by default.",
+        "Priority: correctness > minimal change > consistency; avoid unrelated refactors.",
+        "When modifying code: remove dead/legacy/duplicate logic; keep existing style and interfaces; add tests/docs only when necessary.",
+        "Output: provide conclusion/next step first, then required details; ask clarifying questions when uncertain."
       ].join("\n"),
       "/chat-stream": [
-        "默认使用简体中文回答（除非用户明确要求英文/日文等）。",
-        "优先级：正确性 > 最小改动 > 一致性；避免无关重构。",
-        "改代码时：移除死代码/旧逻辑/重复逻辑；保持现有风格与接口不变；必要时补齐测试与文档。",
-        "输出：分段说明，但不要遗漏最终结论/下一步。"
+        "Answer in the user's language by default.",
+        "Priority: correctness > minimal change > consistency; avoid unrelated refactors.",
+        "When modifying code: remove dead/legacy/duplicate logic; keep existing style and interfaces; add tests/docs only when necessary.",
+        "Output in chunks, but do not omit the final conclusion/next step."
       ].join("\n"),
       "/completion": "Follow existing style. Output only the completion text. Avoid explanations and markdown.",
       "/chat-input-completion": "Follow existing style. Output only the completion text. Avoid explanations and markdown.",

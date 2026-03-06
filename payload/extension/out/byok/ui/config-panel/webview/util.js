@@ -69,10 +69,10 @@
       u = new URL(s);
     } catch (err) {
       const m = err instanceof Error ? err.message : String(err);
-      return { ok: false, empty: false, href: "", error: `URL 解析失败：${m}` };
+      return { ok: false, empty: false, href: "", error: `URL parse failed: ${m}` };
     }
     const protocol = String(u.protocol || "").toLowerCase();
-    if (protocol !== "http:" && protocol !== "https:") return { ok: false, empty: false, href: "", error: `只支持 http/https（当前: ${u.protocol || "unknown"}）` };
+    if (protocol !== "http:" && protocol !== "https:") return { ok: false, empty: false, href: "", error: `Only http/https are supported (current: ${u.protocol || "unknown"})` };
     return { ok: true, empty: false, href: String(u.href || s) };
   };
 
@@ -98,29 +98,29 @@
     const issues = [];
     const push = (level, key, message) => issues.push({ level, key, message: String(message || "") });
 
-    if (!id) push("warning", "id", "ID 为空：保存后该 Provider 会被丢弃（normalizeConfig 要求 id/type 都非空）。");
+    if (!id) push("warning", "id", "ID is empty: this Provider will be dropped after save (normalizeConfig requires non-empty id/type).");
 
-    if (!type) push("error", "type", "Type 不能为空。");
-    else if (!KNOWN_PROVIDER_TYPES.includes(type)) push("warning", "type", `未知 Type：${type}（可能不受支持）。建议使用：${KNOWN_PROVIDER_TYPES.join(", ")}`);
+    if (!type) push("error", "type", "Type cannot be empty.");
+    else if (!KNOWN_PROVIDER_TYPES.includes(type)) push("warning", "type", `Unknown Type: ${type} (may be unsupported). Suggested: ${KNOWN_PROVIDER_TYPES.join(", ")}`);
 
     const baseCheck = ns.validateHttpUrl(baseUrl);
     if (baseCheck.ok && baseCheck.empty) {
-      push("warning", "baseUrl", "Base URL 为空：该 Provider 将无法发起请求（建议填写 http(s) 地址）。");
+      push("warning", "baseUrl", "Base URL is empty: this Provider cannot send requests (recommended to set an http(s) URL).");
     } else if (!baseCheck.ok) {
-      push("error", "baseUrl", `Base URL 无效：${baseCheck.error || "invalid url"}`);
+      push("error", "baseUrl", `Base URL invalid: ${baseCheck.error || "invalid url"}`);
     } else if (type === "openai_compatible" || type === "openai_responses" || type === "anthropic") {
-      // 轻量提示：不少 OpenAI/Anthropic 兼容端点以 /v1 结尾（但不作为硬错误）。
+      // Light hint: many OpenAI/Anthropic-compatible endpoints end with /v1 (not a hard error).
       let pathname = "";
       try {
         pathname = new URL(baseUrl).pathname || "";
       } catch {}
-      if (pathname && !pathname.includes("/v1")) push("warning", "baseUrl", "Base URL 通常包含 /v1（若你的服务不需要可忽略）。");
+      if (pathname && !pathname.includes("/v1")) push("warning", "baseUrl", "Base URL usually includes /v1 (ignore if your service does not require it).");
     }
 
     if (!models.length && !defaultModel) {
-      push("warning", "models", "Models 为空：建议点击“拉取”或“编辑”，至少设置一个模型/默认模型。");
+      push("warning", "models", "Models is empty: click 'Fetch Model' or 'Edit' and set at least one model/default model.");
     } else if (defaultModel && models.length && !models.includes(defaultModel)) {
-      push("warning", "models", "Default Model 不在 Models 列表中（保存/归一化时可能被重写）。");
+      push("warning", "models", "Default Model is not in the Models list (may be rewritten during save/normalize).");
     }
 
     return issues;

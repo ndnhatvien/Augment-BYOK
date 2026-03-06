@@ -133,11 +133,11 @@
           if (q && anyVisible && typeof g.open === "boolean") g.open = true;
 
           const badge = g.querySelector ? g.querySelector("[data-endpoint-group-count-badge]") : null;
-          if (badge) badge.textContent = q ? `显示 ${visibleInGroup} / ${totalInGroup}` : `${totalInGroup} total`;
+          if (badge) badge.textContent = q ? `Showing ${visibleInGroup} / ${totalInGroup}` : `${totalInGroup} total`;
         }
 
         const countEl = qs("#endpointFilterCount");
-        if (countEl) countEl.textContent = rows.length ? `显示 ${visible} / ${rows.length}` : "";
+        if (countEl) countEl.textContent = rows.length ? `Showing ${visible} / ${rows.length}` : "";
       },
       { thresholdMs: 16 }
     );
