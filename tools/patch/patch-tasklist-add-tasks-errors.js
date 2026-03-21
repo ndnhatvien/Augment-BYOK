@@ -45,6 +45,10 @@ function patchTasklistAddTasksErrors(filePath) {
       const spreadFn = String(m[9] || "");
       if (!resultsVar || !textVar || !fmtNs || !diffFn || !beforeVar || !afterVar || !spreadFn) throw new Error("tasklist add_tasks errors: capture missing");
 
+      const errFnCapture = m[0].match(/return\s+([A-Za-z_$][\w$]*)\("No (?:root task|task list) found[^"]*"\)/);
+      const errFnVar = String(errFnCapture?.[1] || "");
+      if (!errFnVar) throw new Error("tasklist add_tasks errors: error fn capture missing");
+
       const oldTail = `let ${textVar}=${fmtNs}.formatBulkUpdateResponse(${diffFn}(${beforeVar},${afterVar}));return{...${spreadFn}(${textVar}),plan:${afterVar}}`;
       const insertion =
         `let __byok_failed=${resultsVar}.filter(t=>t&&t.success===!1);` +
@@ -53,7 +57,7 @@ function patchTasklistAddTasksErrors(filePath) {
         `let __byok_more=__byok_failed.length>10?"\\n… ("+String(__byok_failed.length-10)+" more)":"";
 ` +
         `let __byok_msg="\\n\\nTask creation failures ("+String(__byok_failed.length)+"/"+String(${resultsVar}.length)+"):\\n"+__byok_lines+__byok_more;` +
-        `if(__byok_failed.length===${resultsVar}.length)return{...it("Failed to add task(s)."+__byok_msg),plan:${afterVar}};` +
+        `if(__byok_failed.length===${resultsVar}.length)return{...${errFnVar}("Failed to add task(s)."+__byok_msg),plan:${afterVar}};` +
         `${textVar}+=__byok_msg;` +
         `}`;
 

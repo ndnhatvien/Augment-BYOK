@@ -14,9 +14,23 @@ function escapeRegExp(str) {
   return String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// Upstream >= 0.814.0 merges tool use rendering into a larger bundle (e.g. main-panel-*.js)
+// with a different reactive structure. The fallback patches no longer apply to this new layout.
+const HAS_NEW_TOOLUSE_STRUCTURE_RE = /\.map\([A-Za-z_$][\w$]*=>[A-Za-z_$][\w$]*\.tool_use\)\.filter\([A-Za-z_$][\w$]*=>!![A-Za-z_$][\w$]*\)/;
+
 function patchAugmentMessageAsset(filePath) {
   if (!fs.existsSync(filePath)) throw new Error(`missing file: ${filePath}`);
   const original = fs.readFileSync(filePath, "utf8");
+
+  // New upstream structure: stamp markers and skip; fallback patches not applicable.
+  if (HAS_NEW_TOOLUSE_STRUCTURE_RE.test(original)) {
+    let out = original;
+    if (!out.includes(MARKER_TOOL_LIST)) out = ensureMarker(out, MARKER_TOOL_LIST);
+    if (!out.includes(MARKER_TOOL_LIST_UNGROUPED)) out = ensureMarker(out, MARKER_TOOL_LIST_UNGROUPED);
+    if (!out.includes(MARKER_TOOL_STATE)) out = ensureMarker(out, MARKER_TOOL_STATE);
+    if (out !== original) fs.writeFileSync(filePath, out, "utf8");
+    return { changed: out !== original, reason: "upstream_new_structure" };
+  }
 
   let out = original;
   let changed = false;
@@ -117,10 +131,20 @@ function patchWebviewToolUseFallback(extensionDir) {
   const assetsDir = path.join(extDir, "common-webviews", "assets");
   if (!fs.existsSync(assetsDir)) throw new Error(`webview assets dir missing: ${assetsDir}`);
 
-  const candidates = fs
+  const allJs = fs
     .readdirSync(assetsDir)
-    .filter((name) => typeof name === "string" && name.startsWith("AugmentMessage-") && name.endsWith(".js"))
+    .filter((name) => typeof name === "string" && name.endsWith(".js"))
     .map((name) => path.join(assetsDir, name));
+
+  let candidates = allJs.filter((f) => path.basename(f).startsWith("AugmentMessage-"));
+
+  // Upstream >= 0.814.0 merged AugmentMessage into a larger bundle (e.g. main-panel-*.js).
+  // Fall back to content-based detection.
+  if (!candidates.length) {
+    candidates = allJs.filter((f) => {
+      try { return fs.readFileSync(f, "utf8").includes("displayableToolUseNodes"); } catch { return false; }
+    });
+  }
 
   if (!candidates.length) throw new Error("AugmentMessage asset not found (upstream may have changed)");
 

@@ -82,7 +82,7 @@ function patchClientAuthSettingsFallback(src) {
 
 function patchConfigListenerNormalizeConfig(src) {
   const re =
-    /apiToken:\(t\?\.\s*advanced\?\.\s*apiToken\?\?t\.apiToken\?\?"\"\)\.trim\(\)\.toUpperCase\(\),completionURL:\(t\?\.\s*advanced\?\.\s*completionURL\?\?t\.completionURL\?\?"\"\)\.trim\(\)/g;
+    /apiToken:\(t\?\.advanced\?\.apiToken\?\?t\.apiToken\?\?""\)\.trim\(\)(?:\.toUpperCase\(\))?,completionURL:\(t\?\.advanced\?\.completionURL\?\?t\.completionURL\?\?""\)\.trim\(\)/g;
 
   const replacement =
     `apiToken:(()=>{try{const __byok_conn=require("./byok/config/official").getOfficialConnection();return (__byok_conn.apiToken||"").trim()}catch{return""}})(),` +
@@ -143,21 +143,21 @@ function patchAuthenticatedCallDisabledEndpoints(src) {
   return out;
 }
 
-function patchAuthenticatedCallErrorMessages(src) {
-  let out = src;
-
-  const res = replaceAllOrThrow(
-    out,
-    /throw new ([A-Za-z_$][0-9A-Za-z_$]*)\(`API call failed: \$\{([A-Za-z_$][0-9A-Za-z_$]*)\.statusText\}`,Ye\.Internal\)/g,
-    "throw new $1(`API call failed: ${$2.status} ${$2.statusText} (${u.toString()})`,Ye.Internal)",
-    "makeAuthenticatedCall error message include url"
-  );
-  // expected: 3 (unary f + stream h + stream f)
-  if (res.count !== 3) throw new Error(`patch failed: makeAuthenticatedCall error message match count unexpected (${res.count})`);
-  out = res.out;
-
-  return out;
-}
+function patchAuthenticatedCallErrorMessages(src) {
+  let out = src;
+
+  const res = replaceAllOrThrow(
+    out,
+    /([A-Za-z_$][0-9A-Za-z_$]*)\.body\?\.cancel\(\)\.catch\(\(\)=>\{\}\),new ([A-Za-z_$][0-9A-Za-z_$]*)\(`API call failed: \$\{([A-Za-z_$][0-9A-Za-z_$]*)\.statusText\}`,([A-Za-z_$][0-9A-Za-z_$]*)\.Internal\)/g,
+    "$1.body?.cancel().catch(()=>{}),new $2(`API call failed: ${$3.status} ${$3.statusText} (${d.toString()})`, $4.Internal)",
+    "makeAuthenticatedCall error message include url"
+  );
+  // expected: 3 (unary f + stream h + stream f)
+  if (res.count !== 3) throw new Error(`patch failed: makeAuthenticatedCall error message match count unexpected (${res.count})`);
+  out = res.out;
+
+  return out;
+}
 
 function patchCallApiBaseUrlAndToken(src) {
   const injection = (params) => {
