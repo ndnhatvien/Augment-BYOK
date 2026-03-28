@@ -160,7 +160,7 @@ function main() {
   );
 
   let ui = readText(uiPath);
-  ui = replaceAndAssertMatch(ui, /label:\s*"LLM 数据面（\d+）"/, `label: "LLM 数据面（${llmCount}）"`, "ui llm group label");
+  ui = replaceAndAssertMatch(ui, /label:\s*"LLM Data Plane \(\d+\)"/, `label: "LLM Data Plane (${llmCount})"`, "ui llm group label");
 
   const epIndent = indentOfMarkerLine(ui, "/* BEGIN GENERATED: LLM_ENDPOINTS */");
   ui = replaceBetweenMarkers(
