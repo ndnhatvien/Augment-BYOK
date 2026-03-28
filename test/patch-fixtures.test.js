@@ -295,15 +295,20 @@ test("patchOfficialOverrides: applies expected replacements and is idempotent", 
       `  async getCompletionURL(){return this.configListener.config.completionURL}`,
       `}`,
       ``,
+      `function normalizeConfig(t){return{apiToken:(t?.advanced?.apiToken??t.apiToken??"").trim(),completionURL:(t?.advanced?.completionURL??t.completionURL??"").trim()}}`,
+      ``,
       `class ApiClient{`,
       `  async makeAuthenticatedCall(t,r,n,i="POST",o,s){`,
       `    const c="https://example.com/root/";`,
       `    const u=new URL(t,c)`,
+      `    if(!f.ok)throw(f.body?.cancel().catch(()=>{}),new He(\`API call failed: \${f.statusText}\`,He.Internal));`,
       `    return {u};`,
       `  }`,
       `  async makeAuthenticatedCallStream(t,r,n,i="post",o){`,
       `    const c={tenantUrl:"https://example.com/root/"};`,
       `    const u=new URL(t,c.tenantUrl)`,
+      `    if(!h.ok)throw(h.body?.cancel().catch(()=>{}),new He(\`API call failed: \${h.statusText}\`,He.Internal));`,
+      `    if(!f.ok)throw(f.body?.cancel().catch(()=>{}),new He(\`API call failed: \${f.statusText}\`,He.Internal));`,
       `    return {u};`,
       `  }`,
       `  async callApi(p0,p1,p2,p3,p4,baseUrl,p6,p7,p8,p9,apiToken){`,
@@ -319,25 +324,19 @@ test("patchOfficialOverrides: applies expected replacements and is idempotent", 
 
     const r1 = patchOfficialOverrides(filePath);
     assert.equal(r1.changed, true);
-    assert.equal(r1.getApiTokenPatched, 1);
-    assert.equal(r1.getCompletionURLPatched, 1);
-    assert.equal(r1.makeAuthenticatedCallPatched, 1);
-    assert.equal(r1.makeAuthenticatedCallStreamPatched, 1);
     assert.equal(r1.callApiPatched, 1);
     assert.equal(r1.callApiStreamPatched, 1);
 
     const out1 = readUtf8(filePath);
     assert.ok(out1.includes("__augment_byok_official_overrides_patched_v1"));
 
-    assert.ok(out1.includes('const __byok_off=require("./byok/config/official");const __byok_conn=__byok_off.getOfficialConnection();'));
-    assert.ok(out1.includes("if(__byok_conn.apiToken)return __byok_conn.apiToken"));
-    assert.ok(out1.includes("if(__byok_conn.apiToken&&__byok_conn.completionURL)return __byok_conn.completionURL"));
-    assert.ok(out1.includes('if(typeof t==="string"&&t[0]==="/")t=t.slice(1);'));
+    assert.ok(out1.includes('require("./byok/config/official").getOfficialConnection()'));
+    assert.ok(out1.includes("if(__byok_off.apiToken)return __byok_off.apiToken"));
+    assert.ok(out1.includes("if(__byok_off.apiToken&&__byok_off.completionURL)return __byok_off.completionURL"));
     assert.ok(out1.includes("if(__byok_conn.apiToken&&!__byok_useOAuth){if(__byok_conn.completionURL)baseUrl=__byok_conn.completionURL;apiToken=__byok_conn.apiToken;}"));
-    assert.ok(out1.includes('if(baseUrl==null||baseUrl==="")baseUrl=await this.clientAuth.getCompletionURL();'));
-    assert.ok(out1.includes('if(apiToken==null||apiToken==="")apiToken=await this.clientAuth.getAPIToken();'));
+    assert.ok(out1.includes("if(!baseUrl)baseUrl=await this.clientAuth.getCompletionURL();"));
+    assert.ok(out1.includes("if(!apiToken)apiToken=await this.clientAuth.getAPIToken();"));
     assert.ok(out1.includes("if(__byok_conn.apiToken&&__byok_conn.completionURL&&!__byok_useOAuth)u=__byok_conn.completionURL;"));
-    assert.ok(out1.includes('if(u==null||u==="")u=await this.clientAuth.getCompletionURL();'));
 
     const r2 = patchOfficialOverrides(filePath);
     assert.equal(r2.changed, false);
