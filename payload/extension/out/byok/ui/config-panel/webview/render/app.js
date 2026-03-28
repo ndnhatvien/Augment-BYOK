@@ -133,8 +133,8 @@
 	                <div class="text-muted text-xs">Hint: none selected = all.</div>
 	              </div>
 	              <div class="flex-row flex-wrap row tight">
-	                <button class="btn btn--small" data-action="selfTestSelectAllProviders" ${stRunning || !providers.length ? "disabled" : "">Select All</button>
-	                <button class="btn btn--small" data-action="selfTestClearSelectedProviders" ${stRunning ? "disabled" : "">Clear</button>
+	                <button class="btn btn--small" data-action="selfTestSelectAllProviders" ${stRunning || !providers.length ? "disabled" : ""}>Select All</button>
+	                <button class="btn btn--small" data-action="selfTestClearSelectedProviders" ${stRunning ? "disabled" : ""}>Clear</button>
 	                <span class="text-muted text-xs">${escapeHtml(stProviderKeys.length ? `selected=${stProviderKeys.length}` : `selected=all (${providers.length})`)}</span>
 	              </div>
 	              ${summarizeSelfTestReport()}
