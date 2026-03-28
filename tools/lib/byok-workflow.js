@@ -10,6 +10,7 @@ const { patchAugmentInterceptorInject } = require("../patch/patch-augment-interc
 const { patchDisableChatHistoryTruncation } = require("../patch/patch-disable-chat-history-truncation");
 const { patchExtensionEntry } = require("../patch/patch-extension-entry");
 const { patchOfficialOverrides } = require("../patch/patch-official-overrides");
+const { patchByokAuthSession } = require("../patch/patch-byok-auth-session");
 const { patchCallApiShim } = require("../patch/patch-callapi-shim");
 const { patchExposeUpstream } = require("../patch/patch-expose-upstream");
 const { patchModelPickerByokOnly } = require("../patch/patch-model-picker-byok-only");
@@ -17,9 +18,10 @@ const { patchMemoriesUpperBoundSize } = require("../patch/patch-memories-upper-b
 const { patchTasklistAutoRoot } = require("../patch/patch-tasklist-auto-root");
 const { patchTasklistAddTasksSanitizeEmptyIds } = require("../patch/patch-tasklist-add-tasks-sanitize-empty-ids");
 const { patchTasklistAddTasksErrors } = require("../patch/patch-tasklist-add-tasks-errors");
+const { patchTasklistReorganizeNoopErrors } = require("../patch/patch-tasklist-reorganize-noop-errors");
 const { patchPackageJsonCommands } = require("../patch/patch-package-json-commands");
-const { patchWebviewToolUseFallback } = require("../patch/patch-webview-tooluse-fallback");
 const { patchWebviewHistorySummaryNode } = require("../patch/patch-webview-history-summary-node");
+const { patchWebviewAssetCacheBust } = require("../patch/patch-webview-asset-cache-bust");
 const { guardNoAutoAuth } = require("../patch/guard-no-autoauth");
 
 function makeLogger(prefix) {
@@ -28,7 +30,7 @@ function makeLogger(prefix) {
   return (msg) => console.log(`[${p}] ${msg}`);
 }
 
-function applyByokPatches({ repoRoot, extensionDir, pkgPath, extJsPath, interceptorInjectPath, logPrefix }) {
+function applyByokPatches({ repoRoot, extensionDir, pkgPath, extJsPath, interceptorInjectPath, logPrefix, buildId }) {
   const log = makeLogger(logPrefix || "byok");
   const root = path.resolve(String(repoRoot || ""));
   const extDir = path.resolve(String(extensionDir || ""));
@@ -49,11 +51,11 @@ function applyByokPatches({ repoRoot, extensionDir, pkgPath, extJsPath, intercep
   if (!fs.existsSync(payloadDir)) throw new Error(`payload missing: ${rel(payloadDir)}`);
   copyDir(payloadDir, extDir);
 
-  log(`patch webview assets (tool cards fallback)`);
-  patchWebviewToolUseFallback(extDir);
-
   log(`patch webview assets (history summary node slimming)`);
   patchWebviewHistorySummaryNode(extDir);
+
+  log(`patch webview asset cache bust`);
+  patchWebviewAssetCacheBust(extDir, { buildId });
 
   log(`patch package.json (commands)`);
   patchPackageJsonCommands(pkg);
@@ -73,6 +75,9 @@ function applyByokPatches({ repoRoot, extensionDir, pkgPath, extJsPath, intercep
   log(`patch official (completionURL/apiToken from globalState config)`);
   patchOfficialOverrides(extJs);
 
+  log(`patch auth session (treat BYOK official token as logged-in session)`);
+  patchByokAuthSession(extJs);
+
   log(`patch callApi/callApiStream shim`);
   patchCallApiShim(extJs);
 
@@ -90,6 +95,9 @@ function applyByokPatches({ repoRoot, extensionDir, pkgPath, extJsPath, intercep
 
   log(`patch tasklist tools (add_tasks error reporting)`);
   patchTasklistAddTasksErrors(extJs);
+
+  log(`patch tasklist tools (reorganize_tasklist no-op => error)`);
+  patchTasklistReorganizeNoopErrors(extJs);
 
   log(`guard: no autoAuth`);
   guardNoAutoAuth(extJs);

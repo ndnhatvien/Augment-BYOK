@@ -27,7 +27,7 @@
 
     const endpointGroups = ENDPOINT_GROUPS_V1.concat(
       unknownRuleEndpoints.length
-        ? [{ id: "other_from_config", label: "Others (from config)", endpoints: unknownRuleEndpoints }]
+        ? [{ id: "other_from_config", label: "其他（来自配置）", endpoints: unknownRuleEndpoints }]
         : []
     );
 
@@ -57,16 +57,16 @@
 
             const providerIdUnknown = Boolean(providerId) && !providerMap[providerId];
             const providerSelectCls = providerIdUnknown ? "input--error" : "";
-            const providerSelectTitle = providerIdUnknown ? `Unknown providerId: ${providerId} (not in Providers list)` : "Only used when mode=byok";
+            const providerSelectTitle = providerIdUnknown ? `未知 providerId：${providerId}（不在 Providers 列表中；运行时会回退 official）` : "Only used when mode=byok";
 
             const modelUnknownForProvider =
               Boolean(model) && Boolean(providerId) && !providerIdUnknown && models.length > 0 && !models.includes(model);
             const modelSelectCls = modelUnknownForProvider ? "input--warning" : "";
-            const modelSelectTitle = modelUnknownForProvider ? `Model is not in provider(${providerId}) Models list (can still save/try)` : "Pick provider first (mode=byok)";
+            const modelSelectTitle = modelUnknownForProvider ? `Model 不在 provider(${providerId}) 的 Models 列表中（仍可保存/尝试）` : "Pick provider first (mode=byok)";
 
             const modeSelectCls = byokUnsupportedActive ? "input--warning" : "";
             const modeSelectTitle = byokUnsupportedActive
-              ? "BYOK only works for LLM data-plane endpoints; selecting byok here falls back to official (recommended: official/disabled)."
+              ? "BYOK 只对 LLM 数据面端点生效；该 endpoint 选 byok 会回落 official（建议改为 official/disabled）。"
               : "";
 
             const providerDisabled = !modeIsByok || byokUnsupportedActive;
@@ -138,10 +138,10 @@
 	          <span class="status-badge">${escapeHtml(String(knownEndpoints.length))} endpoints</span>
 	        </header>
 	        <div class="settings-panel__body">
-	          <div class="text-muted text-xs">Manage endpoint Routing / Disable in one place; default is official; only LLM data-plane supports byok.</div>
+	          <div class="text-muted text-xs">统一管理 endpoint 的 Routing / Disable；未设置默认 official；仅 LLM 数据面支持 byok。</div>
 	          <div style="height:10px;"></div>
 	          <div class="flex-row flex-wrap" style="margin-bottom:8px;">
-	            <input type="search" id="endpointSearch" value="${escapeHtml(endpointSearch)}" placeholder="Search endpoint or meaning (substring filter supported, e.g. /record-, GitHub, token)" />
+	            <input type="search" id="endpointSearch" value="${escapeHtml(endpointSearch)}" placeholder="搜索 endpoint 或含义（支持子串过滤，例如 /record-、GitHub、token）" />
 	            <span class="text-muted text-xs" id="endpointFilterCount"></span>
 	          </div>
 	          ${endpointGroupsHtml || `<div class="text-muted text-xs">(no endpoints)</div>`}

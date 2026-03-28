@@ -1,75 +1,73 @@
 #!/usr/bin/env node
 "use strict";
 
-const fs = require("fs");
 const path = require("path");
 
-const { ensureMarker, replaceOnceRegex } = require("../lib/patch");
+const { replaceOnceRegex } = require("../lib/patch");
+const { loadPatchText, savePatchText } = require("./patch-target");
+const { buildTaskFailuresSummarySnippet } = require("./tasklist-common");
 
 const MARKER = "__augment_byok_tasklist_add_tasks_errors_patched_v1";
 
+function escapeRegExp(str) {
+  return String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function patchTasklistAddTasksErrors(filePath) {
-  if (!fs.existsSync(filePath)) throw new Error(`missing file: ${filePath}`);
-  const original = fs.readFileSync(filePath, "utf8");
-  if (original.includes(MARKER)) return { changed: false, reason: "already_patched" };
+  const { original, alreadyPatched } = loadPatchText(filePath, { marker: MARKER });
+  if (alreadyPatched) return { changed: false, reason: "already_patched" };
 
   let next = original;
 
   // Upstream add_tasks swallows per-task creation errors inside handleBatchCreation and returns
   // "Created: 0, Updated: 0, Deleted: 0" with no error details.
   // Patch: if any tasks fail, append failure summary; if all fail, return isError=true with details.
-  //
-  // 上游 minified 变量名不固定（历史上 Zk→Qk、V0/xr 等），因此正则中所有工具函数名
-  // 均用 (\w+) 动态捕获，避免每次上游重新打包都需要更新。
-  //
-  // 捕获组编号：
-  //   m[1] = handleBatchCreation 参数1
-  //   m[2] = handleBatchCreation 参数2
-  //   m[3] = results 数组变量名（如 s）
-  //   m[4] = text 变量名（如 c）
-  //   m[5] = formatBulkUpdateResponse 所属命名空间（如 V0）
-  //   m[6] = diff 函数名（如 Qk/Zk）
-  //   m[7] = before 变量名（如 o）
-  //   m[8] = after 变量名（如 a）
-  //   m[9] = spread helper 函数名（如 xr）
   next = replaceOnceRegex(
     next,
-    /async handleBatchCreation\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{[\s\S]*?let\s+([A-Za-z_$][\w$]*)=\[\];for\(let[\s\S]*?let\s+([A-Za-z_$][\w$]*)=(\w+)\.formatBulkUpdateResponse\((\w+)\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\);return\{\.\.\.(\w+)\(\4\),plan:\8\}\}/g,
+    /async handleBatchCreation\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{[\s\S]*?let\s+([A-Za-z_$][\w$]*)\s*=\s*([A-Za-z_$][\w$]*)\.formatBulkUpdateResponse\(([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\)\s*;[\s\S]*?return\s*\{\.\.\.([A-Za-z_$][\w$]*)\(\3\),plan:\7\}\s*\}/g,
     (m) => {
-      const resultsVar = String(m[3] || "");
-      const textVar = String(m[4] || "");
-      const fmtNs = String(m[5] || "");
-      const diffFn = String(m[6] || "");
-      const beforeVar = String(m[7] || "");
-      const afterVar = String(m[8] || "");
-      const spreadFn = String(m[9] || "");
-      if (!resultsVar || !textVar || !fmtNs || !diffFn || !beforeVar || !afterVar || !spreadFn) throw new Error("tasklist add_tasks errors: capture missing");
+      const textVar = String(m[3] || "");
+      const formatterVar = String(m[4] || "");
+      const diffFnVar = String(m[5] || "");
+      const beforeVar = String(m[6] || "");
+      const afterVar = String(m[7] || "");
+      const okFnVar = String(m[8] || "");
+      if (!textVar || !formatterVar || !diffFnVar || !beforeVar || !afterVar || !okFnVar) {
+        throw new Error("tasklist add_tasks errors: capture missing");
+      }
 
-      const errFnCapture = m[0].match(/return\s+([A-Za-z_$][\w$]*)\("No (?:root task|task list) found[^"]*"\)/);
+      const resultsCapture = m[0].match(/let\s+([A-Za-z_$][\w$]*)\s*=\s*\[\]\s*;\s*for\(let/);
+      const resultsVar = String(resultsCapture?.[1] || "");
+      if (!resultsVar) throw new Error("tasklist add_tasks errors: results capture missing");
+
+      const errFnCapture = m[0].match(/return\s+([A-Za-z_$][\w$]*)\("No (?:root task|task list) found[^"]*"\);/);
       const errFnVar = String(errFnCapture?.[1] || "");
       if (!errFnVar) throw new Error("tasklist add_tasks errors: error fn capture missing");
 
-      const oldTail = `let ${textVar}=${fmtNs}.formatBulkUpdateResponse(${diffFn}(${beforeVar},${afterVar}));return{...${spreadFn}(${textVar}),plan:${afterVar}}`;
-      const insertion =
-        `let __byok_failed=${resultsVar}.filter(t=>t&&t.success===!1);` +
-        `if(__byok_failed.length){` +
-        `let __byok_lines=__byok_failed.slice(0,10).map(t=>"- "+String(t.taskName)+": "+String(t.error||"unknown")).join("\\n");` +
-        `let __byok_more=__byok_failed.length>10?"\\n… ("+String(__byok_failed.length-10)+" more)":"";
-` +
-        `let __byok_msg="\\n\\nTask creation failures ("+String(__byok_failed.length)+"/"+String(${resultsVar}.length)+"):\\n"+__byok_lines+__byok_more;` +
-        `if(__byok_failed.length===${resultsVar}.length)return{...${errFnVar}("Failed to add task(s)."+__byok_msg),plan:${afterVar}};` +
-        `${textVar}+=__byok_msg;` +
-        `}`;
+      const oldTailRe = new RegExp(
+        `let\\s+${escapeRegExp(textVar)}\\s*=\\s*${escapeRegExp(formatterVar)}\\.formatBulkUpdateResponse\\(${escapeRegExp(diffFnVar)}\\(${escapeRegExp(
+          beforeVar
+        )},${escapeRegExp(afterVar)}\\)\\)\\s*;\\s*return\\s*\\{\\.\\.\\.${escapeRegExp(okFnVar)}\\(${escapeRegExp(textVar)}\\),plan:${escapeRegExp(
+          afterVar
+        )}\\}`,
+        "g"
+      );
+      const insertion = buildTaskFailuresSummarySnippet({
+        resultsVar,
+        errorFnVar: errFnVar,
+        textVar,
+        planVar: afterVar
+      });
 
-      const newTail = `let ${textVar}=${fmtNs}.formatBulkUpdateResponse(${diffFn}(${beforeVar},${afterVar}));${insertion}return{...${spreadFn}(${textVar}),plan:${afterVar}}`;
-      if (!m[0].includes(oldTail)) throw new Error("tasklist add_tasks errors: tail not found (upstream may have changed)");
-      return m[0].replace(oldTail, newTail);
+      const newTail = `let ${textVar}=${formatterVar}.formatBulkUpdateResponse(${diffFnVar}(${beforeVar},${afterVar}));${insertion}return{...${okFnVar}(${textVar}),plan:${afterVar}}`;
+      if (!oldTailRe.test(m[0])) throw new Error("tasklist add_tasks errors: tail not found (upstream may have changed)");
+      oldTailRe.lastIndex = 0;
+      return m[0].replace(oldTailRe, newTail);
     },
     "tasklist add_tasks errors: handleBatchCreation"
   );
 
-  next = ensureMarker(next, MARKER);
-  fs.writeFileSync(filePath, next, "utf8");
+  savePatchText(filePath, next, { marker: MARKER });
   return { changed: true, reason: "patched" };
 }
 

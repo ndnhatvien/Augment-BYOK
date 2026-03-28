@@ -7,22 +7,20 @@
   const ENDPOINT_GROUPS_V1 = [
     {
       id: "llm_data_plane",
-      label: "LLM Data Plane (13)",
+      label: "LLM Data Plane (11)",
       endpoints: [
         /* BEGIN GENERATED: LLM_ENDPOINTS */
         "/get-models",
         "/chat",
         "/completion",
         "/chat-input-completion",
-        "/edit",
         "/next_edit_loc",
         "/chat-stream",
         "/prompt-enhancer",
         "/instruction-stream",
         "/smart-paste-stream",
         "/next-edit-stream",
-        "/generate-commit-message-stream",
-        "/generate-conversation-title"
+        "/generate-commit-message-stream"
         /* END GENERATED: LLM_ENDPOINTS */
       ]
     },
@@ -134,15 +132,13 @@
     "/chat": "Non-streaming chat (or chat in some scenarios)",
     "/completion": "Editor inline completion (short text)",
     "/chat-input-completion": "Smart completion in chat input box",
-    "/edit": "Code edit/rewrite (text or structured edit result)",
     "/next_edit_loc": "Next Edit location (candidate positions JSON)",
     "/chat-stream": "Core chat stream (Augment NDJSON)",
     "/prompt-enhancer": "Prompt enhancer (stream)",
     "/instruction-stream": "Instruction generation/rewrite (stream)",
-    "/smart-paste-stream": "Smart Paste（stream）",
+    "/smart-paste-stream": "Smart Paste (stream)",
     "/next-edit-stream": "Next Edit suggestions (stream)",
-    "/generate-commit-message-stream": "Commit message（stream）",
-    "/generate-conversation-title": "Conversation title (stream)",
+    "/generate-commit-message-stream": "Commit message (stream)",
     /* END GENERATED: LLM_ENDPOINT_MEANINGS */
 
     "/remote-agents/create": "Create remote agent",

@@ -1,6 +1,11 @@
 .cache/
 dist/
 tmp/
-.cunzhi-memory/
+
 config.yaml
+
+webview.log
+vscode.log
+.ace-tool/
+.cunzhi-memory/
 .serena/

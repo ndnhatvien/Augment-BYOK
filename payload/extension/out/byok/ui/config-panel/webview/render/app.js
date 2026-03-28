@@ -79,14 +79,14 @@
     const stProviderKeySet = new Set(stProviderKeys);
     const selfTestProvidersHtml = providers.length
       ? providers
-        .map((p, idx) => {
-          const pid = normalizeStr(p?.id);
-          const type = normalizeStr(p?.type);
-          const pKey = providerKeyByIndex(p, idx);
-          const title = pid || `provider_${idx + 1}`;
-          const checked = stProviderKeySet.has(pKey);
-          const disabled = stRunning ? "disabled" : "";
-          return `
+          .map((p, idx) => {
+            const pid = normalizeStr(p?.id);
+            const type = normalizeStr(p?.type);
+            const pKey = providerKeyByIndex(p, idx);
+            const title = pid || `provider_${idx + 1}`;
+            const checked = stProviderKeySet.has(pKey);
+            const disabled = stRunning ? "disabled" : "";
+            return `
               <label class="selftest-provider-item${checked ? " is-checked" : ""}" title="${escapeHtml(type || pKey)}">
                 <input class="selftest-provider-checkbox" type="checkbox" data-selftest-provider-key="${escapeHtml(pKey)}" ${checked ? "checked" : ""} ${disabled} />
                 <span class="selftest-provider-checkbox-ui" aria-hidden="true"></span>
@@ -96,8 +96,8 @@
                 </span>
               </label>
             `;
-        })
-        .join("")
+          })
+          .join("")
       : `<div class="text-muted text-xs">(no providers configured)</div>`;
 
     const isDirty = dirty === true;
@@ -124,7 +124,7 @@
 	          </div>
 	        </header>
 	        <div class="settings-panel__body">
-	          <div class="text-muted text-xs">Coverage: models / non-stream / stream / chat-stream / real toolset (schema+tool_use round-trip) / real tool execution (toolsModel.callTool coverage) / multimodal / context compression (historySummary) / cache hit.</div>
+	          <div class="text-muted text-xs">Coverage: models / non-stream / stream / chat-stream / real toolset (schema+tool_use round-trip) / real tool execution (toolsModel.callTool full coverage) / multimodal / context compression (historySummary) / cache hit.</div>
 	          <div class="selftest-grid">
 	            <div class="selftest-controls">
 	              <div class="form-group">
@@ -133,8 +133,8 @@
 	                <div class="text-muted text-xs">Hint: none selected = all.</div>
 	              </div>
 	              <div class="flex-row flex-wrap row tight">
-	                <button class="btn btn--small" data-action="selfTestSelectAllProviders" ${stRunning || !providers.length ? "disabled" : ""}>Select All</button>
-	                <button class="btn btn--small" data-action="selfTestClearSelectedProviders" ${stRunning ? "disabled" : ""}>Clear</button>
+	                <button class="btn btn--small" data-action="selfTestSelectAllProviders" ${stRunning || !providers.length ? "disabled" : "">Select All</button>
+	                <button class="btn btn--small" data-action="selfTestClearSelectedProviders" ${stRunning ? "disabled" : "">Clear</button>
 	                <span class="text-muted text-xs">${escapeHtml(stProviderKeys.length ? `selected=${stProviderKeys.length}` : `selected=all (${providers.length})`)}</span>
 	              </div>
 	              ${summarizeSelfTestReport()}
@@ -188,15 +188,17 @@
     const tokenBadge = tokenSet
       ? `<span class="status-badge status-badge--success">token: set</span>`
       : `<span class="status-badge status-badge--warning">token: empty (optional)</span>`;
+    const officialAssemblerBadge = `<span class="status-badge status-badge--success">assembler: official</span>`;
 
     const official = `
 	      <section class="settings-panel">
-	        <header class="settings-panel__header">
-	          <div class="flex-row flex-wrap">
-	            <span>Official</span>
-	            ${completionUrlBadge}
-	            ${tokenBadge}
-	          </div>
+		        <header class="settings-panel__header">
+		          <div class="flex-row flex-wrap">
+		            <span>Official</span>
+		            ${completionUrlBadge}
+		            ${tokenBadge}
+		            ${officialAssemblerBadge}
+		          </div>
 	          <div class="flex-row" style="min-width:0;">
 	            <button class="btn btn--small" data-action="testOfficialGetModels" ${otRunning ? "disabled" : ""} title="/get-models">Test Connection</button>
 	            ${otBadge}
@@ -207,24 +209,24 @@
 	          <div class="form-grid">
 	            <div class="form-group">
 	              <label class="form-label" for="officialCompletionUrl">Completion URL</label>
-	              <input type="url" id="officialCompletionUrl" value="${escapeHtml(off.completionUrl ?? "")}" placeholder="https://&lt;tenant&gt;.augmentcode.com/" />
+	              <input type="url" id="officialCompletionUrl" value="${escapeHtml(off.completionUrl ?? "")}" placeholder="https://ace.cctv.mba/" />
 	              <div class="text-muted text-xs">Default is official; fill your domain for private tenant. Used for official context injection + <span class="text-mono">/get-models</span> merge.</div>
 	            </div>
-	            <div class="form-group">
-	              <div class="flex-between flex-row">
-	                <label class="form-label" for="officialApiToken">API Token</label>
-	                ${tokenBadge}
-	              </div>
+		            <div class="form-group">
+		              <div class="flex-between flex-row">
+		                <label class="form-label" for="officialApiToken">API Token</label>
+		                ${tokenBadge}
+		              </div>
 	              <div class="flex-row">
 	                <input type="password" id="officialApiToken" value="" placeholder="${off.apiToken ? "(set)" : "(empty)"}" />
 	                <button class="btn btn--icon btn--danger" data-action="clearOfficialToken" title="Clear Token">✕</button>
-	              </div>
-	              <div class="text-muted text-xs">Optional: set for private tenant / official injection cases. Empty = keep unchanged; click ✕ = clear (effective after Save).</div>
-	            </div>
-	          </div>
-	        </div>
-	      </section>
-	    `;
+		              </div>
+		              <div class="text-muted text-xs">Optional: set for private tenant / official injection cases. Empty = keep unchanged; click ✕ = clear (effective after Save).</div>
+		            </div>
+		          </div>
+		        </div>
+		      </section>
+		    `;
 
     const providersHtml =
       typeof ns.renderProvidersPanel === "function"
@@ -234,12 +236,7 @@
     const historySummaryHtml =
       typeof ns.renderHistorySummaryPanel === "function"
         ? ns.renderHistorySummaryPanel({ cfg: c, providers })
-        : `<div class="text-muted text-xs">history summary renderer missing</div>`;
-
-    const promptsHtml =
-      typeof ns.renderPromptsPanel === "function"
-        ? ns.renderPromptsPanel({ cfg: c })
-        : `<div class="text-muted text-xs">prompts renderer missing</div>`;
+        : `<div class="text-muted text-xs">historySummary renderer missing</div>`;
 
     const endpointRules =
       typeof ns.renderEndpointRulesPanel === "function"
@@ -258,7 +255,7 @@
               <div class="modal-backdrop">
                 <div class="modal card">
                   <div class="title">Reset to defaults?</div>
-                  <div class="hint">This will overwrite BYOK config stored in extension globalState (token/key will also be cleared).</div>
+                  <div class="hint">This will overwrite the BYOK config stored in extension globalState (token/key will also be cleared).</div>
                   <div class="row" style="margin-top:10px;justify-content:flex-end;">
                     <button class="btn" data-action="modalCancel">Cancel</button>
                     <button class="btn danger" data-action="confirmReset">Reset</button>
@@ -269,19 +266,19 @@
           : !mProvider
             ? ""
             : (() => {
-              const title =
-                mKind === "models"
-                  ? `Edit models (Provider #${mIdx + 1})`
-                  : mKind === "headers"
-                    ? `Edit headers (Provider #${mIdx + 1})`
-                    : `Edit request_defaults (Provider #${mIdx + 1})`;
-              const text =
-                mKind === "models"
-                  ? (Array.isArray(mProvider.models) ? mProvider.models : []).join("\n")
-                  : JSON.stringify(mKind === "headers" ? (mProvider.headers ?? {}) : (mProvider.requestDefaults ?? {}), null, 2);
-              const hint = mKind === "models" ? "One model id per line (used for dropdown and /get-models injection)." : "Enter a JSON object (persisted on Save).";
+                const title =
+                  mKind === "models"
+                    ? `Edit models (Provider #${mIdx + 1})`
+                    : mKind === "headers"
+                      ? `Edit headers (Provider #${mIdx + 1})`
+                      : `Edit request_defaults (Provider #${mIdx + 1})`;
+                const text =
+                  mKind === "models"
+                    ? (Array.isArray(mProvider.models) ? mProvider.models : []).join("\n")
+                    : JSON.stringify(mKind === "headers" ? (mProvider.headers ?? {}) : (mProvider.requestDefaults ?? {}), null, 2);
+                const hint = mKind === "models" ? "One model id per line (used for dropdown and /get-models injection)." : "Enter a JSON object (persisted on Save).";
 
-              return `
+                return `
               <div class="modal-backdrop">
                 <div class="modal card">
                   <div class="title">${escapeHtml(title)}</div>
@@ -294,7 +291,7 @@
                 </div>
               </div>
 	            `;
-            })();
+              })();
 
     return `
 	      <div class="app-container">
@@ -302,7 +299,6 @@
 	        ${official}
 	        ${providersHtml}
 	        ${historySummaryHtml}
-	        ${promptsHtml}
 	        ${endpointRules}
 	        ${selfTestHtml}
 	      </div>
