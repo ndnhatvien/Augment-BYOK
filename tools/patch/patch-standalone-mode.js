@@ -9,10 +9,22 @@ const { replaceOnce } = require("../lib/patch");
 function patchStandaloneMode(extCode) {
   let patchedCode = extCode;
 
-  // 1. Bypass gRPC initialization timeout and intercept retrieveClientDiscoveryTransportConfigs
+  // 1. Serve gRPC transports from the local Express gRPC server so webview
+  //    sidecar services (rules/guidelines/commands etc.) can connect.
+  //    The webview can't reach the local server if we return an empty list,
+  //    which makes createRule/listRules etc. hang in the webview forever.
   const initNeedle = 'if(!await PS.awaitServerReady(6e4))throw new Error("gRPC server not ready — timed out waiting for ExpressGrpcServerSingleton to start");await KOr(e);const t=await eU().getToken(),r=await PAt().retrieveClientDiscoveryTransportConfigs();';
-  const initReplacement = 'await PS.awaitServerReady(10);await KOr(e);const t=await eU().getToken(),r=[]; /* BYPASS GRPC INIT */';
+  const initReplacement = 'await PS.awaitServerReady(3e4);const r=await PAt().retrieveClientDiscoveryTransportConfigs().catch(()=>[]); /* BYOK GRPC LOCAL */await KOr(e);const t=await eU().getToken();';
   patchedCode = replaceOnce(patchedCode, initNeedle, initReplacement);
+
+  // 1b. Bypass token validation on the local gRPC server. The webview connects
+  //     with the fake BYOK session JWT which upstream validateToken rejects,
+  //     so without this the webview gRPC calls get 401 and sidecar services
+  //     (createRule etc.) still fail after transports are restored.
+  patchedCode = patchedCode.replace(
+    /function AFr\(\)\{const e=eU\(\);return\(t,r,n\)=>\{/,
+    'function AFr(){const e=eU();return(t,r,n)=>{n();return;/* BYOK GRPC AUTH BYPASS */const i=t.header("Authorization"),a=mFr(i);e.validateToken(a).then(s=>{'
+  );
 
   // 2. Bypass "Extension did not fully initialize after initial activation — showing sign-in app as fallback"
   // This prevents the extension from rendering the SignIn webview when initialization fails
