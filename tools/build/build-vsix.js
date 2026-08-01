@@ -86,7 +86,10 @@ async function main() {
   const { version: byokVersion } = stampByokPackageVersion(pkgPath, { upstreamVersion, buildId });
   runByokContractChecks({ repoRoot, extensionDir, extJsPath, pkgPath, logPrefix: "build" });
 
-  const outName = `augment.vscode-augment.${byokVersion}.vsix`;
+  // Use a stable filename keyed on upstream version only (no buildId) so that
+  // replacesArtifacts: true on the rolling release actually overwrites previous
+  // artifacts from the same upstream version instead of appending new ones.
+  const outName = `augment.vscode-augment.${upstreamVersion}.byok.vsix`;
   const outPath = path.join(distDir, outName);
   console.log(`[build] repack VSIX -> ${path.relative(repoRoot, outPath)}`);
   runPython([path.join(repoRoot, "tools", "lib", "zip-dir.py"), "--src", workDir, "--out", outPath], { cwd: repoRoot });

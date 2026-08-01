@@ -65,17 +65,40 @@ jobs:
             upstream.lock.json
             .cache/reports/upstream-analysis.json
 
-      - name: Prepare Rolling Release Assets
+      - name: Prepare release assets
         if: github.ref_name == github.event.repository.default_branch
         run: cp dist/upstream.lock.json dist.upstream.lock.json
 
-      - name: Generate Rolling Release Notes
+      - name: Generate release notes
         if: github.ref_name == github.event.repository.default_branch
         run: |
-          git log -1 --pretty=format:%B > dist/rolling.release.md
-          printf '\n' >> dist/rolling.release.md
+          UPSTREAM_VER=$(node -e 'console.log(require("./upstream.lock.json").upstream.version)')
+          git log -1 --pretty=format:%B > dist/release-notes.md
+          printf '\n\n---\nUpstream: %s' "$UPSTREAM_VER" >> dist/release-notes.md
+          printf '\nTag: v%s-byok\n' "$UPSTREAM_VER" >> dist/release-notes.md
+          echo "upstreamVersion=$UPSTREAM_VER" >> "$GITHUB_ENV"
 
-      - name: Publish Rolling Release
+      # Versioned release (v0.893.0-byok): one release per upstream version,
+      # overwrites assets when the same upstream version is rebuilt.
+      - name: Publish versioned release
+        if: github.ref_name == github.event.repository.default_branch
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ env.upstreamVersion }}-byok
+          name: v${{ env.upstreamVersion }}-byok
+          prerelease: false
+          allowUpdates: true
+          replacesArtifacts: true
+          bodyFile: dist/release-notes.md
+          artifacts: |
+            dist/*.vsix
+            dist/endpoint-coverage.report.md
+            dist.upstream.lock.json
+            upstream.lock.json
+
+      # Rolling pre-release: always points to the latest build,
+      # overwrites artifacts from the same upstream version.
+      - name: Publish rolling release
         if: github.ref_name == github.event.repository.default_branch
         uses: ncipollo/release-action@v1
         with:
@@ -84,7 +107,7 @@ jobs:
           prerelease: true
           allowUpdates: true
           replacesArtifacts: true
-          bodyFile: dist/rolling.release.md
+          bodyFile: dist/release-notes.md
           artifacts: |
             dist/*.vsix
             dist/endpoint-coverage.report.md
