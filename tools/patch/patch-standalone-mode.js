@@ -1,6 +1,6 @@
 "use strict";
 
-const { replaceOnce } = require("../lib/patch");
+const { replaceOnce, replaceOnceRegex } = require("../lib/patch");
 
 /**
  * Applies Hardcore Patches to enable running the extension offline
@@ -13,17 +13,32 @@ function patchStandaloneMode(extCode) {
   //    sidecar services (rules/guidelines/commands etc.) can connect.
   //    The webview can't reach the local server if we return an empty list,
   //    which makes createRule/listRules etc. hang in the webview forever.
-  const initNeedle = 'if(!await PS.awaitServerReady(6e4))throw new Error("gRPC server not ready — timed out waiting for ExpressGrpcServerSingleton to start");await KOr(e);const t=await eU().getToken(),r=await PAt().retrieveClientDiscoveryTransportConfigs();';
-  const initReplacement = 'await PS.awaitServerReady(3e4);const r=await PAt().retrieveClientDiscoveryTransportConfigs().catch(()=>[]); /* BYOK GRPC LOCAL */await KOr(e);const t=await eU().getToken();';
-  patchedCode = replaceOnce(patchedCode, initNeedle, initReplacement);
+  //    Upstream changed the gRPC init helper shape between 0.890.3 and later
+  //    builds, so match both forms and keep the token getter + the discovery
+  //    call (it resolves to the local Express gRPC server transports), adding
+  //    a catch fallback so a slow/missing server degrades to [] instead of
+  //    hanging the webview.
+  patchedCode = replaceOnceRegex(
+    patchedCode,
+    /const t=await ([A-Za-z_$][0-9A-Za-z_$]*)\(\)\.getToken\(\),r=await ([A-Za-z_$][0-9A-Za-z_$]*)\(\)\.retrieveClientDiscoveryTransportConfigs\(\);/g,
+    (m) => {
+      const tok = m[1];
+      const disc = m[2];
+      return `const t=await ${tok}().getToken();const r=await ${disc}().retrieveClientDiscoveryTransportConfigs().catch(()=>[]); /* BYOK GRPC LOCAL */`;
+    },
+    "standalone gRPC transports"
+  );
 
   // 1b. Bypass token validation on the local gRPC server. The webview connects
   //     with the fake BYOK session JWT which upstream validateToken rejects,
   //     so without this the webview gRPC calls get 401 and sidecar services
   //     (createRule etc.) still fail after transports are restored.
+  //     Upstream renamed the auth middleware function (AFr / D4r) and the token
+  //     provider (eU / $U) between builds.
   patchedCode = patchedCode.replace(
-    /function AFr\(\)\{const e=eU\(\);return\(t,r,n\)=>\{/,
-    'function AFr(){const e=eU();return(t,r,n)=>{n();return;/* BYOK GRPC AUTH BYPASS */const i=t.header("Authorization"),a=mFr(i);e.validateToken(a).then(s=>{'
+    /function (AFr|D4r)\(\)\{const e=(eU|\$U)\(\);return\(t,r,n\)=>\{/,
+    (_m, fn, prov) =>
+      `function ${fn}(){const e=${prov}();return(t,r,n)=>{n();return;/* BYOK GRPC AUTH BYPASS */`
   );
 
   // 2. Bypass "Extension did not fully initialize after initial activation — showing sign-in app as fallback"
@@ -58,10 +73,10 @@ function patchStandaloneMode(extCode) {
   // Keep a dead callApi(...,"find-missing") so endpoint catalog analysis still sees the endpoint.
   const findMissingEmpty =
     'async findMissing(){return {unknownBlobNames:[],nonindexedBlobNames:[]}; /* BYPASS FIND MISSING */this.callApi(0,0,"find-missing")}';
-  patchedCode = replaceOnce(
+  patchedCode = replaceOnceRegex(
     patchedCode,
-    'async findMissing(t,r){const n=await this.clientConfig.getConfig(),i=this.createRequestId(),a=[...t].sort();return await this.apiRetry.retryWithRetryAfter("find-missing",async()=>await this.callApi(i,n,"find-missing",{model:r,mem_object_names:a},h0r))}',
-    findMissingEmpty,
+    /async findMissing\(t,r\)\{const n=await this\.clientConfig\.getConfig\(\),i=this\.createRequestId\(\),a=\[\.\.\.t\]\.sort\(\);return await this\.apiRetry\.retryWithRetryAfter\("find-missing",async\(\)=>await this\.callApi\(i,n,"find-missing",\{model:r,mem_object_names:a\},[A-Za-z_$][0-9A-Za-z_$]*\)\)\}/g,
+    () => findMissingEmpty,
     "standalone findMissing(t,r)"
   );
   patchedCode = replaceOnce(

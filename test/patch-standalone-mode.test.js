@@ -14,13 +14,25 @@ function fixtureExtensionJs() {
   ].join("\n");
 }
 
-test("patchStandaloneMode: bypasses init wait and findMissing indexing drain", () => {
-  const out = patchStandaloneMode(fixtureExtensionJs());
+// Later upstream builds (0.890.3+) renamed the gRPC init helper symbols and the
+// auth middleware function (AFr -> D4r, token provider eU -> $U, discovery
+// PAt -> Evt, findMissing callback h0r -> E1r). The patch must be symbol-agnostic.
+function fixtureExtensionJsNew() {
+  return [
+    `await Mg.awaitServerReadyOrThrow(6e4),await vYr(e);const t=await $U().getToken(),r=await Evt().retrieveClientDiscoveryTransportConfigs();`,
+    `async awaitInitialFoldersSynced(){for(;!this.initialFoldersSynced;)await mge(this._folderSyncedEmitter.event,this._pendingEventSubscriptions)}`,
+    `const p=300*1e3;await a.diskFileManager.awaitQuiesced(p)?r.logger.info("Source folder synced successfully"):r.logger.info("timeout");`,
+    `async findMissing(t,r){const n=await this.clientConfig.getConfig(),i=this.createRequestId(),a=[...t].sort();return await this.apiRetry.retryWithRetryAfter("find-missing",async()=>await this.callApi(i,n,"find-missing",{model:r,mem_object_names:a},E1r))}`,
+    `async findMissing(t){const r=this._configListener.config,n=this.createRequestId(),i=r.modelName,a=[...t].sort();return await this.apiRetry.retryWithRetryAfter("find-missing",async()=>await this.callApi(n,r,"find-missing",{model:i,mem_object_names:a},s=>this.toFindMissingResult(s)))}`,
+    `function D4r(){const e=$U();return(t,r,n)=>{const i=t.header("Authorization"),a=M4r(i);e.validateToken(a).then(s=>{`,
+  ].join("\n");
+}
 
+function assertStandalonePatches(out) {
   // gRPC transports must come from the local Express gRPC server (not an empty
   // list) so webview sidecar services (rules/guidelines) can connect.
   assert.ok(out.includes("BYOK GRPC LOCAL"));
-  assert.ok(out.includes("await PAt().retrieveClientDiscoveryTransportConfigs()"));
+  assert.ok(out.includes("retrieveClientDiscoveryTransportConfigs().catch(()=>[])"));
   assert.equal(out.includes("BYPASS GRPC INIT"), false);
   assert.ok(out.includes("BYOK GRPC AUTH BYPASS"));
   assert.ok(out.includes("BYPASS INIT SYNC WAIT"));
@@ -35,6 +47,14 @@ test("patchStandaloneMode: bypasses init wait and findMissing indexing drain", (
   );
   // Endpoint catalog scanners still need a static callApi third-arg for /find-missing.
   assert.equal((out.match(/callApi\(0,0,"find-missing"\)/g) || []).length, 2);
+}
+
+test("patchStandaloneMode: bypasses init wait and findMissing indexing drain", () => {
+  assertStandalonePatches(patchStandaloneMode(fixtureExtensionJs()));
+});
+
+test("patchStandaloneMode: applies to newer upstream gRPC init / auth symbol names", () => {
+  assertStandalonePatches(patchStandaloneMode(fixtureExtensionJsNew()));
 });
 
 test("patchStandaloneMode: applies against cached upstream extension.js when present", () => {
