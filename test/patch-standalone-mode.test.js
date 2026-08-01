@@ -10,13 +10,19 @@ function fixtureExtensionJs() {
     `const p=300*1e3;await a.diskFileManager.awaitQuiesced(p)?r.logger.info("Source folder synced successfully"):r.logger.info("timeout");`,
     `async findMissing(t,r){const n=await this.clientConfig.getConfig(),i=this.createRequestId(),a=[...t].sort();return await this.apiRetry.retryWithRetryAfter("find-missing",async()=>await this.callApi(i,n,"find-missing",{model:r,mem_object_names:a},h0r))}`,
     `async findMissing(t){const r=this._configListener.config,n=this.createRequestId(),i=r.modelName,a=[...t].sort();return await this.apiRetry.retryWithRetryAfter("find-missing",async()=>await this.callApi(n,r,"find-missing",{model:i,mem_object_names:a},s=>this.toFindMissingResult(s)))}`,
+    `function AFr(){const e=eU();return(t,r,n)=>{const i=t.header("Authorization"),a=mFr(i);e.validateToken(a).then(s=>{`,
   ].join("\n");
 }
 
 test("patchStandaloneMode: bypasses init wait and findMissing indexing drain", () => {
   const out = patchStandaloneMode(fixtureExtensionJs());
 
-  assert.ok(out.includes("BYPASS GRPC INIT"));
+  // gRPC transports must come from the local Express gRPC server (not an empty
+  // list) so webview sidecar services (rules/guidelines) can connect.
+  assert.ok(out.includes("BYOK GRPC LOCAL"));
+  assert.ok(out.includes("await PAt().retrieveClientDiscoveryTransportConfigs()"));
+  assert.equal(out.includes("BYPASS GRPC INIT"), false);
+  assert.ok(out.includes("BYOK GRPC AUTH BYPASS"));
   assert.ok(out.includes("BYPASS INIT SYNC WAIT"));
   assert.ok(out.includes("BYPASS 300S WAIT"));
   assert.equal(out.includes("awaitInitialFoldersSynced(){for(;!this.initialFoldersSynced;)"), false);
