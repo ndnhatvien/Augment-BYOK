@@ -21,6 +21,7 @@ const { patchPackageJsonCommands } = require("../patch/patch-package-json-comman
 const { patchWebviewHistorySummaryNode } = require("../patch/patch-webview-history-summary-node");
 const { patchWebviewAssetCacheBust } = require("../patch/patch-webview-asset-cache-bust");
 const { patchWebviewMuteAgentError } = require("../patch/patch-webview-mute-agent-error");
+const { patchWebviewTokenUsage } = require("../patch/patch-webview-token-usage");
 const { patchStandaloneMode } = require("../patch/patch-standalone-mode");
 
 function makeLogger(prefix) {
@@ -56,6 +57,9 @@ function applyByokPatches({ repoRoot, extensionDir, pkgPath, extJsPath, logPrefi
 
   log(`patch webview mute agent config error`);
   patchWebviewMuteAgentError(extDir);
+
+  log(`patch webview token usage display`);
+  patchWebviewTokenUsage(extDir);
 
   log(`patch package.json (commands)`);
   patchPackageJsonCommands(pkg);

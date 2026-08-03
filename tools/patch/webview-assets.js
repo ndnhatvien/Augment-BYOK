@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 const HISTORY_SUMMARY_NODE_PATCH_MARKER = "__augment_byok_webview_history_summary_node_slim_v1";
+const TOKEN_USAGE_PATCH_MARKER = "__augment_byok_webview_token_usage_v1";
 
 function resolveWebviewAssetsDir(extensionDir, callerName) {
   const caller = String(callerName || "webview-assets");
@@ -33,4 +34,28 @@ function listExtensionClientContextAssets(extensionDir, callerName) {
   return candidates;
 }
 
-module.exports = { HISTORY_SUMMARY_NODE_PATCH_MARKER, listExtensionClientContextAssets, resolveWebviewAssetsDir };
+function listWebviewTokenUsageAssets(extensionDir, callerName) {
+  const assetsDir = resolveWebviewAssetsDir(extensionDir, callerName);
+  const candidates = fs
+    .readdirSync(assetsDir)
+    .filter((name) => typeof name === "string" && name.endsWith(".js") && !name.endsWith(".js.map"))
+    .sort()
+    .map((name) => path.join(assetsDir, name))
+    .filter((filePath) => {
+      const src = fs.readFileSync(filePath, "utf8");
+      if (src.includes(TOKEN_USAGE_PATCH_MARKER)) return true;
+      // 定位 assistant 消息气泡组件（Svelte 编译产物里的消息 footer）
+      return src.includes("c-aug-msg__footer") && src.includes('"$exchange"');
+    });
+
+  if (!candidates.length) throw new Error("webview token usage asset not found (upstream may have changed)");
+  return candidates;
+}
+
+module.exports = {
+  HISTORY_SUMMARY_NODE_PATCH_MARKER,
+  TOKEN_USAGE_PATCH_MARKER,
+  listExtensionClientContextAssets,
+  listWebviewTokenUsageAssets,
+  resolveWebviewAssetsDir
+};

@@ -8,7 +8,7 @@ const { assertFileExists, assertContains, assertHasCommand, assertModelRegistryF
 const { assertCallApiShimSignatureContracts } = require("./check-callapi-shim");
 const { assertProtocolEnumsAligned } = require("./check-protocol-enums");
 const { assertAugmentProtocolShapes } = require("./check-augment-protocol-shapes");
-const { listExtensionClientContextAssets } = require("../../patch/webview-assets");
+const { listExtensionClientContextAssets, listWebviewTokenUsageAssets, TOKEN_USAGE_PATCH_MARKER } = require("../../patch/webview-assets");
 const { LLM_ENDPOINT_SPECS } = require("../../report/llm-endpoints-spec");
 const { endpointDetailsFromSource, sortedEndpointList } = require("../../lib/endpoint-analysis");
 const { extractUiEndpointCatalogFromSource } = require("../../lib/ui-endpoint-catalog");
@@ -247,6 +247,15 @@ function main(argv = process.argv) {
     );
   }
   ok(`webview history summary patch markers ok (${webviewAssets.length})`);
+
+  const tokenUsageAssets = listWebviewTokenUsageAssets(extensionDir, "contracts");
+  assert(tokenUsageAssets.length > 0, "webview token usage asset missing");
+  for (const assetPath of tokenUsageAssets) {
+    const tokenUsageSrc = readText(assetPath);
+    assertContains(tokenUsageSrc, TOKEN_USAGE_PATCH_MARKER, "webview token usage patched");
+    assertContains(tokenUsageSrc, "data-byok-token-usage", "webview token usage DOM injection");
+  }
+  ok(`webview token usage patch markers ok (${tokenUsageAssets.length})`);
 
   assertCallApiShimSignatureContracts(extJs);
 
