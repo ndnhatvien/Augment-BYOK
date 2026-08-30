@@ -17,6 +17,8 @@ function renderConfigPanelHtml({ vscode, webview, ctx, init }) {
   const renderHistorySummaryUri =
     webview.asWebviewUri(vscode.Uri.joinPath(ctx.extensionUri, "out", "byok", "ui", "config-panel", "webview", "render", "history-summary.js")) +
     `?v=${cacheBust}`;
+  const renderMcpUri =
+    webview.asWebviewUri(vscode.Uri.joinPath(ctx.extensionUri, "out", "byok", "ui", "config-panel", "webview", "render", "mcp.js")) + `?v=${cacheBust}`;
   const renderAppUri =
     webview.asWebviewUri(vscode.Uri.joinPath(ctx.extensionUri, "out", "byok", "ui", "config-panel", "webview", "render", "app.js")) + `?v=${cacheBust}`;
   const webviewDomUri =
@@ -56,6 +58,7 @@ function renderConfigPanelHtml({ vscode, webview, ctx, init }) {
   <script src="${renderProvidersUri}"></script>
   <script src="${renderEndpointsUri}"></script>
   <script src="${renderHistorySummaryUri}"></script>
+  <script src="${renderMcpUri}"></script>
   <script src="${renderAppUri}"></script>
   <script src="${webviewDomUri}"></script>
   <script src="${webviewCoreUri}"></script>

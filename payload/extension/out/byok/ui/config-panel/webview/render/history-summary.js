@@ -60,9 +60,9 @@
 	        <div class="settings-panel__body">
 	          <div class="form-grid">
 	            <div class="form-group">
-	              <label class="form-label">启用</label>
-	              <label class="checkbox-wrapper"><input type="checkbox" id="historySummaryEnabled" ${hsEnabled ? "checked" : ""} /><span>启用</span></label>
-	              <div class="text-muted text-xs">启用后会在后台自动做“滚动摘要”，用于避免上下文溢出（仅影响发给上游模型的内容）。</div>
+	              <label class="form-label">Enabled</label>
+	              <label class="checkbox-wrapper"><input type="checkbox" id="historySummaryEnabled" ${hsEnabled ? "checked" : ""} /><span>Enabled</span></label>
+	              <div class="text-muted text-xs">When enabled, a rolling summary is built in the background to avoid context overflow (only affects content sent to the upstream model).</div>
 	            </div>
 	            <div class="form-group">
 	              <label class="form-label">Model</label>
@@ -80,16 +80,16 @@
 	                  })
 	                  .join("")}
 	              </select>
-	              <div class="text-muted text-xs">留空则跟随当前请求模型（仅用于“生成摘要”）；触发窗口判断始终基于当前对话模型。</div>
+	              <div class="text-muted text-xs">Leave empty to follow the current request model (only used for "generate summary"); the trigger-window check always uses the current conversation model.</div>
 	            </div>
 	            <div class="form-group form-grid--full">
-	              <div class="flex-row flex-wrap"><button class="btn btn--small" data-action="clearHistorySummaryCache">清理摘要缓存</button><span class="text-muted text-xs">仅清理后台摘要复用缓存，不影响 UI 历史显示。</span></div>
+	              <div class="flex-row flex-wrap"><button class="btn btn--small" data-action="clearHistorySummaryCache">Clear summary cache</button><span class="text-muted text-xs">Only clears the background summary reuse cache; does not affect UI history display.</span></div>
 	            </div>
 	            <div class="form-group form-grid--full">
 	              <details class="endpoint-group">
 	                <summary class="endpoint-group-summary"><span>Advanced</span><span class="row" style="gap:6px;"><span class="badge">trigger</span><span class="badge">tail</span><span class="badge">cache</span><span class="badge">window</span><span class="badge">prompt</span></span></summary>
 	                <div class="endpoint-group-body">
-	                  <div class="text-muted text-xs">高级参数可选；留空会回落默认值。内置已覆盖常见编程模型（Claude4/GPT5/Gemini/Kimi）。</div>
+	                  <div class="text-muted text-xs">Advanced parameters are optional; leave empty to fall back to defaults. Built-in defaults already cover common coding models (Claude4/GPT5/Gemini/Kimi).</div>
 	                  <div style="height:10px;"></div>
 	                  <div class="form-grid">
 	                    <div class="form-group"><label class="form-label" for="historySummaryTriggerStrategy">Trigger Strategy</label><select id="historySummaryTriggerStrategy">${optionHtml({ value: "auto", label: "auto (recommended)", selected: hsTriggerStrategy === "auto" })}${optionHtml({ value: "ratio", label: "ratio", selected: hsTriggerStrategy === "ratio" })}${optionHtml({ value: "chars", label: "chars", selected: hsTriggerStrategy === "chars" })}</select></div>
@@ -103,9 +103,9 @@
 	                    <div class="form-group"><label class="form-label" for="historySummaryCacheTtlMs">Cache TTL (ms)</label><input id="historySummaryCacheTtlMs" type="number" min="0" step="1" value="${escapeHtml(hsCacheTtlMs)}" placeholder="0" /></div>
 	                    <div class="form-group"><label class="form-label" for="historySummaryMaxSummarizationInputChars">Summarization Input Chars</label><input id="historySummaryMaxSummarizationInputChars" type="number" min="0" step="1" value="${escapeHtml(hsMaxSummarizationInputChars)}" placeholder="250000" /></div>
 	                    <div class="form-group"><label class="form-label" for="historySummaryContextWindowTokensDefault">Context Window Default (tokens)</label><input id="historySummaryContextWindowTokensDefault" type="number" min="0" step="1" value="${escapeHtml(hsContextWindowTokensDefault)}" placeholder="0" /></div>
-	                    <div class="form-group"><label class="form-label">Rolling Summary</label><label class="checkbox-wrapper"><input type="checkbox" id="historySummaryRollingSummary" ${hsRollingSummary ? "checked" : ""} /><span>启用缓存增量摘要</span></label></div>
-	                    <div class="form-group form-grid--full"><label class="form-label" for="historySummaryContextWindowTokensOverrides">Context Window Overrides (JSON object)</label><textarea class="mono" id="historySummaryContextWindowTokensOverrides" rows="6" placeholder='{"gpt-5.3-codex":400000,"gpt-5.2":400000,"claude-4.6-opus":1000000,"gemini-3-pro":1000000,"kimi-k2":128000}'>${escapeHtml(hsContextWindowTokensOverrides)}</textarea><div class="text-muted text-xs">按“当前对话模型名”子串匹配，长度优先；大小写不敏感。此项不改变摘要模型。</div></div>
-	                    <div class="form-group form-grid--full"><label class="form-label" for="historySummaryPrompt">Prompt</label><textarea class="mono" id="historySummaryPrompt" rows="6" placeholder="(default)">${escapeHtml(hsPrompt)}</textarea><div class="text-muted text-xs">建议保持简洁、结构化；避免泄漏敏感信息。留空会回落默认模板。</div></div>
+	                    <div class="form-group"><label class="form-label">Rolling Summary</label><label class="checkbox-wrapper"><input type="checkbox" id="historySummaryRollingSummary" ${hsRollingSummary ? "checked" : ""} /><span>Enable cached incremental summary</span></label></div>
+	                    <div class="form-group form-grid--full"><label class="form-label" for="historySummaryContextWindowTokensOverrides">Context Window Overrides (JSON object)</label><textarea class="mono" id="historySummaryContextWindowTokensOverrides" rows="6" placeholder='{"gpt-5.3-codex":400000,"gpt-5.2":400000,"claude-4.6-opus":1000000,"gemini-3-pro":1000000,"kimi-k2":128000}'>${escapeHtml(hsContextWindowTokensOverrides)}</textarea><div class="text-muted text-xs">Substring match against the "current conversation model name", longest match wins; case-insensitive. This does not change the summary model.</div></div>
+	                    <div class="form-group form-grid--full"><label class="form-label" for="historySummaryPrompt">Prompt</label><textarea class="mono" id="historySummaryPrompt" rows="6" placeholder="(default)">${escapeHtml(hsPrompt)}</textarea><div class="text-muted text-xs">Keep it concise and structured; avoid leaking sensitive information. Leave empty to fall back to the default template.</div></div>
 	                  </div>
 	                </div>
 	              </details>

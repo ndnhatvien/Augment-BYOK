@@ -23,7 +23,9 @@ function getOfficialConnection() {
   const completionURL = normalizeBaseUrl(normalizeString(off.completionUrl) || DEFAULT_OFFICIAL_COMPLETION_URL);
   const apiToken = normalizeRawToken(off.apiToken);
   const disableContextInjection = off.disableContextInjection === true || off.disable_context_injection === true;
-  return { completionURL, apiToken, disableContextInjection };
+  const localAceEnabled = off.localAceEnabled === true || off.local_ace_enabled === true;
+  const aceCceUrl = normalizeString(off.aceCceUrl);
+  return { completionURL, apiToken, disableContextInjection, localAceEnabled, aceCceUrl };
 }
 
 module.exports = { getOfficialConnection, DEFAULT_OFFICIAL_COMPLETION_URL };

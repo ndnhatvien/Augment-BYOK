@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 
 const { REDACTED, redactConfigSecrets, mergeConfigPreservingSecrets } = require("../payload/extension/out/byok/ui/config-io");
 
-function makeCfg({ officialToken, providerKey, headers } = {}) {
+function makeCfg({ officialToken, providerKey, headers, mcpServers } = {}) {
   return {
     version: 1,
     official: { completionUrl: "https://acemcp.heroman.wtf/relay/", apiToken: officialToken || "" },
@@ -21,9 +21,53 @@ function makeCfg({ officialToken, providerKey, headers } = {}) {
     ],
     routing: { rules: {} },
     prompts: { endpointSystem: {} },
-    historySummary: { enabled: false, providerId: "", model: "" }
+    historySummary: { enabled: false, providerId: "", model: "" },
+    mcp: { enabled: true, injectPosition: "before", servers: mcpServers || [] }
   };
 }
+
+test("config-io: redactConfigSecrets redacts mcp server env values", () => {
+  const redacted = redactConfigSecrets(
+    makeCfg({
+      mcpServers: [
+        { name: "db", command: "npx", args: ["server"], env: { PASSWORD: "secret123", OPEN: "public" } }
+      ]
+    })
+  );
+  assert.equal(redacted.mcp.servers[0].env.PASSWORD, REDACTED);
+  assert.equal(redacted.mcp.servers[0].env.OPEN, REDACTED);
+});
+
+test("config-io: mergeConfigPreservingSecrets keeps mcp env secrets by server name", () => {
+  const current = makeCfg({
+    mcpServers: [
+      { name: "db", command: "npx", args: ["server"], env: { PASSWORD: "current_secret", OPEN: "current_open" } }
+    ]
+  });
+  const incoming = makeCfg({
+    mcpServers: [
+      { name: "db", command: "npx", args: ["server"], env: { PASSWORD: REDACTED, OPEN: "new_open" } }
+    ]
+  });
+  const merged = mergeConfigPreservingSecrets(current, incoming);
+  assert.equal(merged.mcp.servers[0].env.PASSWORD, "current_secret");
+  assert.equal(merged.mcp.servers[0].env.OPEN, "new_open");
+});
+
+test("config-io: mergeConfigPreservingSecrets overwrites mcp env when incoming provides real secret", () => {
+  const current = makeCfg({
+    mcpServers: [
+      { name: "db", command: "npx", args: ["server"], env: { PASSWORD: "current_secret" } }
+    ]
+  });
+  const incoming = makeCfg({
+    mcpServers: [
+      { name: "db", command: "npx", args: ["server"], env: { PASSWORD: "new_real_secret" } }
+    ]
+  });
+  const merged = mergeConfigPreservingSecrets(current, incoming);
+  assert.equal(merged.mcp.servers[0].env.PASSWORD, "new_real_secret");
+});
 
 test("config-io: redactConfigSecrets redacts official/apiKey/auth headers", () => {
   const cfg = makeCfg({

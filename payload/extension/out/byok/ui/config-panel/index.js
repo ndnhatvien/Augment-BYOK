@@ -47,16 +47,16 @@ function createHandlers({ vscode, ctx, cfgMgr, state, panel }) {
     reloadWindow: async () => {
       try {
         const pick = await vscode.window.showWarningMessage(
-          "这会重载 VS Code（用于真正重载插件/主面板）。建议优先选择“重启扩展宿主”。",
+          "This reloads VS Code (used to truly reload the extension / main panel). Prefer \u201cRestart Extension Host\u201d.",
           { modal: true },
-          "重启扩展宿主",
-          "重载窗口"
+          "Restart Extension Host",
+          "Reload Window"
         );
-        if (pick === "重启扩展宿主") {
+        if (pick === "Restart Extension Host") {
           await vscode.commands.executeCommand("workbench.action.restartExtensionHost");
           return;
         }
-        if (pick === "重载窗口") {
+        if (pick === "Reload Window") {
           await vscode.commands.executeCommand("workbench.action.reloadWindow");
           return;
         }
@@ -170,7 +170,7 @@ function createHandlers({ vscode, ctx, cfgMgr, state, panel }) {
 
       try {
         if (!apiToken) {
-          throw new Error("请先到 https://acemcp.heroman.wtf/login 注册并填写 Official API Token");
+          throw new Error("Please register at https://acemcp.heroman.wtf/login and fill in the Official API Token");
         }
         const startedAtMs = Date.now();
         const json = await fetchOfficialGetModels({ completionURL: completionUrl, apiToken, timeoutMs: 12000 });
@@ -290,7 +290,7 @@ async function openConfigPanel({ vscode, ctx, cfgMgr, state }) {
     } catch (err) {
       const m = err instanceof Error ? err.message : String(err);
       warn("panel onDidReceiveMessage failed:", m);
-      postStatus(panel, "消息处理器异常（已忽略）。");
+      postStatus(panel, "Message handler error (ignored).");
     }
   });
 

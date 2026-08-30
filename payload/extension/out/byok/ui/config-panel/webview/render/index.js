@@ -7,7 +7,7 @@
   const ENDPOINT_GROUPS_V1 = [
     {
       id: "llm_data_plane",
-      label: "LLM 数据面（7）",
+      label: "LLM Data Plane (7)",
       endpoints: [
         /* BEGIN GENERATED: LLM_ENDPOINTS */
         "/get-models",
@@ -22,7 +22,7 @@
     },
     {
       id: "remote_agents",
-      label: "Remote Agents（4）",
+      label: "Remote Agents (4)",
       endpoints: [
         "/remote-agents/list",
         "/remote-agents/list-stream",
@@ -32,7 +32,7 @@
     },
     {
       id: "agents_tools",
-      label: "Agents / Tools（7）",
+      label: "Agents / Tools (7)",
       endpoints: [
         "/agents/check-tool-safety",
         "/agents/revoke-tool-access",
@@ -45,7 +45,7 @@
     },
     {
       id: "blobs_context_sync",
-      label: "文件/Blob/上下文同步（9）",
+      label: "File / Blob / Context Sync (9)",
       endpoints: [
         "/batch-upload",
         "/checkpoint-blobs",
@@ -60,7 +60,7 @@
     },
     {
       id: "cloud_agents_experts",
-      label: "Cloud Agents / Experts（3）",
+      label: "Cloud Agents / Experts (3)",
       endpoints: [
         "/cloud-agents/agents/send-message",
         "/cloud-agents/agents/rename",
@@ -69,7 +69,7 @@
     },
     {
       id: "auth_subscription",
-      label: "账号/订阅/权限（5）",
+      label: "Account / Subscription / Permissions (5)",
       endpoints: [
         "/token",
         "/get-credit-info",
@@ -80,7 +80,7 @@
     },
     {
       id: "feedback_telemetry_debug",
-      label: "反馈/遥测/调试（10）",
+      label: "Feedback / Telemetry / Debug (10)",
       endpoints: [
         "/chat-feedback",
         "/client-metrics",
@@ -96,7 +96,7 @@
     },
     {
       id: "notifications",
-      label: "通知（2）",
+      label: "Notifications (2)",
       endpoints: [
         "/notifications/read",
         "/notifications/mark-as-read"
@@ -106,61 +106,61 @@
 
   const ENDPOINT_MEANINGS_V1 = {
     /* BEGIN GENERATED: LLM_ENDPOINT_MEANINGS */
-    "/get-models": "拉取可用模型/feature flags（并可注入 BYOK models registry）",
-    "/chat": "非流式 chat（或某些场景的 chat 请求）",
-    "/completion": "编辑器 inline completion（短文本）",
-    "/chat-input-completion": "Chat 输入框智能补全",
-    "/chat-stream": "核心聊天流（Augment NDJSON）",
-    "/prompt-enhancer": "提示词增强（stream）",
-    "/generate-commit-message-stream": "Commit message（stream）",
+    "/get-models": "Fetch available models / feature flags (and inject into the BYOK models registry)",
+    "/chat": "Non-streaming chat (or chat requests in some scenarios)",
+    "/completion": "Editor inline completion (short text)",
+    "/chat-input-completion": "Chat input box smart completion",
+    "/chat-stream": "Core chat stream (Augment NDJSON)",
+    "/prompt-enhancer": "Prompt enhancer (stream)",
+    "/generate-commit-message-stream": "Commit message (stream)",
     /* END GENERATED: LLM_ENDPOINT_MEANINGS */
 
-    "/remote-agents/list": "列表（一次性）",
-    "/remote-agents/list-stream": "列表（流式更新）",
-    "/remote-agents/get-chat-history": "拉取对话历史（一次性）",
-    "/remote-agents/agent-history-stream": "对话/事件历史流",
+    "/remote-agents/list": "List (one-shot)",
+    "/remote-agents/list-stream": "List (streaming updates)",
+    "/remote-agents/get-chat-history": "Fetch conversation history (one-shot)",
+    "/remote-agents/agent-history-stream": "Conversation / event history stream",
 
-    "/agents/check-tool-safety": "工具安全性检查/准入",
-    "/agents/revoke-tool-access": "撤销工具权限",
-    "/agents/list-remote-tools": "列出可用远程工具",
-    "/agents/run-remote-tool": "执行远程工具",
-    "/agents/edit-file": "通过 agent 执行文件编辑",
-    "/agents/codebase-retrieval": "代码库检索",
-    "/agents/codebase-retrieval-raw": "代码库检索（raw）",
+    "/agents/check-tool-safety": "Tool safety check / admission",
+    "/agents/revoke-tool-access": "Revoke tool permissions",
+    "/agents/list-remote-tools": "List available remote tools",
+    "/agents/run-remote-tool": "Run a remote tool",
+    "/agents/edit-file": "Edit files through an agent",
+    "/agents/codebase-retrieval": "Codebase retrieval",
+    "/agents/codebase-retrieval-raw": "Codebase retrieval (raw)",
 
-    "/batch-upload": "批量上传 blobs（文件内容/上下文）",
-    "/checkpoint-blobs": "checkpoint 相关 blobs 操作",
-    "/find-missing": "查找缺失 blob",
-    "/save-chat": "保存会话/记录（服务端持久化）",
-    "/context-canvas/list": "Context Canvas 列表",
-    "/search-external-sources": "外部来源搜索",
-    "/indexed-commits/get-latest-blobset": "Indexed commits 最新 blobset",
-    "/indexed-commits/register-blobset": "Indexed commits 注册 blobset",
-    "/chat/exchanges/list": "Chat exchanges 列表",
+    "/batch-upload": "Batch upload blobs (file content / context)",
+    "/checkpoint-blobs": "Checkpoint-related blob operations",
+    "/find-missing": "Find missing blobs",
+    "/save-chat": "Save session / record (server-side persistence)",
+    "/context-canvas/list": "Context Canvas list",
+    "/search-external-sources": "Search external sources",
+    "/indexed-commits/get-latest-blobset": "Indexed commits latest blobset",
+    "/indexed-commits/register-blobset": "Indexed commits register blobset",
+    "/chat/exchanges/list": "Chat exchanges list",
 
-    "/cloud-agents/agents/send-message": "Cloud agent 发送消息",
-    "/cloud-agents/agents/rename": "Cloud agent 重命名",
-    "/cloud-experts/experts/create-agent": "Cloud expert 创建 agent",
+    "/cloud-agents/agents/send-message": "Cloud agent send message",
+    "/cloud-agents/agents/rename": "Cloud agent rename",
+    "/cloud-experts/experts/create-agent": "Cloud expert create agent",
 
-    "/token": "token 获取/刷新（鉴权相关）",
-    "/get-credit-info": "额度/credits 信息",
-    "/get-billing-summary": "账单摘要",
-    "/subscription-banner": "订阅提示 banner",
-    "/settings/get-tenant-tool-permissions": "tenant 级工具权限配置",
+    "/token": "Token retrieval / refresh (auth related)",
+    "/get-credit-info": "Credit / credits info",
+    "/get-billing-summary": "Billing summary",
+    "/subscription-banner": "Subscription banner",
+    "/settings/get-tenant-tool-permissions": "Tenant-level tool permission settings",
 
-    "/chat-feedback": "聊天反馈",
-    "/client-metrics": "客户端指标",
-    "/client-completion-timelines": "completion timeline（行为序列）",
-    "/record-session-events": "会话事件",
-    "/record-user-events": "用户事件",
-    "/record-request-events": "请求事件记录",
-    "/report-error": "错误上报",
-    "/resolve-completions": "resolve*（日志/归因类）",
-    "/resolve-chat-input-completion": "resolve*（日志/归因类）",
-    "/resolve-edit": "resolve*（日志/归因类）",
+    "/chat-feedback": "Chat feedback",
+    "/client-metrics": "Client metrics",
+    "/client-completion-timelines": "Completion timeline (behavior sequence)",
+    "/record-session-events": "Session events",
+    "/record-user-events": "User events",
+    "/record-request-events": "Request event recording",
+    "/report-error": "Error reporting",
+    "/resolve-completions": "resolve* (logging / attribution)",
+    "/resolve-chat-input-completion": "resolve* (logging / attribution)",
+    "/resolve-edit": "resolve* (logging / attribution)",
 
-    "/notifications/read": "拉取通知",
-    "/notifications/mark-as-read": "标记已读"
+    "/notifications/read": "Fetch notifications",
+    "/notifications/mark-as-read": "Mark as read"
   };
 
   ns.ENDPOINT_GROUPS_V1 = ENDPOINT_GROUPS_V1;

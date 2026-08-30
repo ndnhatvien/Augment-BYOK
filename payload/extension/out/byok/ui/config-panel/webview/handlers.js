@@ -155,11 +155,11 @@
       const providers = Array.isArray(cfg.providers) ? cfg.providers : [];
       const keys = uniq(providers.map((p, idx) => normalizeStr(p?.id) || `idx:${idx}`).filter(Boolean));
       setPersistedState({ selfTestProviderKeys: keys });
-      return setUiState({ selfTestProviderKeys: keys, status: "Self Test providers: 全选。" }, { preserveEdits: true });
+      return setUiState({ selfTestProviderKeys: keys, status: "Self Test providers: all selected." }, { preserveEdits: true });
     }
     if (a === "selfTestClearSelectedProviders") {
       setPersistedState({ selfTestProviderKeys: [] });
-      return setUiState({ selfTestProviderKeys: [], status: "Self Test providers: 已清空（=全部）。" }, { preserveEdits: true });
+      return setUiState({ selfTestProviderKeys: [], status: "Self Test providers: cleared (= all)." }, { preserveEdits: true });
     }
     if (a === "editProviderModels") return setUiState({ modal: { kind: "models", idx: Number(btn.getAttribute("data-idx")) } }, { preserveEdits: true });
     if (a === "editProviderHeaders") return setUiState({ modal: { kind: "headers", idx: Number(btn.getAttribute("data-idx")) } }, { preserveEdits: true });

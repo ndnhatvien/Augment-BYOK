@@ -10,7 +10,17 @@ function defaultConfig() {
       apiToken: "",
       // When true: skip automatic official context injection (codebase-retrieval /
       // context-canvas / external-sources) while still allowing /get-models with token.
-      disableContextInjection: false
+      disableContextInjection: false,
+      // When true: serve agents/codebase-retrieval from a local Code Context Engine
+      // (CCE) server instead of the official ACE endpoint. No apiToken required.
+      localAceEnabled: false,
+      // Base URL of the local CCE server (cce serve --http).
+      aceCceUrl: ""
+    },
+    mcp: {
+      enabled: false,
+      injectPosition: "before",
+      servers: []
     },
     historySummary: {
       enabled: false,

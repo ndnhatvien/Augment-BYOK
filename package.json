@@ -21,6 +21,7 @@
     "check:contracts": "node tools/check/run-contracts-cached-upstream.js",
     "test": "node --test test/*.test.js",
     "upstream:analyze": "node tools/build/upstream-analyze.js",
+    "ace:adapter": "node tools/ace-adapter/server.js",
     "report:coverage": "node tools/report/endpoint-coverage.js --analysis .cache/reports/upstream-analysis.json --out dist/endpoint-coverage.report.md --fail-fast"
   }
 }

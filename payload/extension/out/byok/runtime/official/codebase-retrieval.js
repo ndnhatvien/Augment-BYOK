@@ -1,11 +1,12 @@
 "use strict";
 
 const { debug, warn } = require("../../infra/log");
-const { normalizeString } = require("../../infra/util");
+const { normalizeString, safeTransform } = require("../../infra/util");
 const augmentChatShared = require("../../core/augment-chat/shared");
 const { normalizeOfficialBlobsDiff } = require("../../core/blob-utils");
 const { joinBaseUrl, safeFetch } = require("../../providers/http");
 const { readHttpErrorDetail } = require("../../providers/request-util");
+const { resolveLocalAceConnection, fetchLocalCodebaseRetrieval, resolveLocalAceWorkspaceIndexMatch } = require("../ace/local-ace");
 const { makeTextRequestNode, pickInjectionTargetArray, maybeInjectUserExtraTextParts, isOfficialContextDisabled, resolveOfficialContextConnection } = require("./common");
 
 const OFFICIAL_CODEBASE_RETRIEVAL_MAX_OUTPUT_LENGTH = 20000;
@@ -65,19 +66,93 @@ function buildCodebaseRetrievalInformationRequest(req) {
   return parts.join("\n\n").trim();
 }
 
-async function maybeInjectOfficialCodebaseRetrieval({ req, timeoutMs, abortSignal, upstreamCompletionURL, upstreamApiToken }) {
+function injectRetrievalText({ req, formatted, source }) {
+  const retrievalNode = makeTextRequestNode({ id: -20, text: formatted.trim() });
+  const target = pickInjectionTargetArray(req);
+  if (!target) return false;
+  maybeInjectUserExtraTextParts({ req, target, startId: -30 });
+  target.push(retrievalNode);
+  debug(`${source} injected: chars=${formatted.length} target_len=${target.length}`);
+  return true;
+}
+
+async function maybeServeLocalAceAgentCodebaseRetrieval({ ep, body, transform, timeoutMs, abortSignal } = {}) {
+  if (normalizeString(ep) !== "/agents/codebase-retrieval") return undefined;
+
+  const localConn = resolveLocalAceConnection();
+  if (!localConn) return undefined;
+
+  const indexMatch = resolveLocalAceWorkspaceIndexMatch();
+  if (indexMatch === false) {
+    warn("localAce tool call skipped: current workspace has no matching CCE index");
+    return undefined;
+  }
+
+  const info = normalizeString(body?.information_request);
+  if (!info) return undefined;
+
+  const maxOutputLength = Number.isFinite(Number(body?.max_output_length)) && Number(body.max_output_length) > 0 ? Math.floor(Number(body.max_output_length)) : OFFICIAL_CODEBASE_RETRIEVAL_MAX_OUTPUT_LENGTH;
+  const hardTimeout = Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0 ? Number(timeoutMs) : 120000;
+  const t = Math.max(2000, Math.min(OFFICIAL_CODEBASE_RETRIEVAL_TIMEOUT_MS, Math.floor(hardTimeout * 0.5)));
+
+  try {
+    const formatted = await fetchLocalCodebaseRetrieval({
+      cceUrl: localConn.cceUrl,
+      informationRequest: info,
+      blobs: body?.blobs,
+      maxOutputLength,
+      timeoutMs: t,
+      abortSignal
+    });
+    if (!normalizeString(formatted)) return undefined;
+    return safeTransform(transform, { formatted_retrieval: formatted }, "localAceTool:agents/codebase-retrieval");
+  } catch (err) {
+    warn(`localAce tool call failed (ignored): ${err instanceof Error ? err.message : String(err)}`);
+    return undefined;
+  }
+}
+
+async function maybeInjectLocalCodebaseRetrieval({ req, info, cceUrl, timeoutMs, abortSignal }) {
+  try {
+    const formatted = await fetchLocalCodebaseRetrieval({
+      cceUrl,
+      informationRequest: info,
+      blobs: req.blobs,
+      maxOutputLength: OFFICIAL_CODEBASE_RETRIEVAL_MAX_OUTPUT_LENGTH,
+      timeoutMs,
+      abortSignal
+    });
+    if (!normalizeString(formatted)) return false;
+    return injectRetrievalText({ req, formatted, source: "localAceRetrieval" });
+  } catch (err) {
+    warn(`localAce retrieval failed (ignored): ${err instanceof Error ? err.message : String(err)}`);
+    return false;
+  }
+}
+
+async function maybeInjectOfficialCodebaseRetrieval({ req, timeoutMs, abortSignal, upstreamCompletionURL, upstreamApiToken, localAceWorkspaceFolders }) {
   if (!req || typeof req !== "object") return false;
   if (isOfficialContextDisabled(req)) return false;
 
   const info = buildCodebaseRetrievalInformationRequest(req);
   if (!normalizeString(info)) return false;
 
+  const hardTimeout = Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0 ? Number(timeoutMs) : 120000;
+  const t = Math.max(2000, Math.min(OFFICIAL_CODEBASE_RETRIEVAL_TIMEOUT_MS, Math.floor(hardTimeout * 0.5)));
+
+  const localConn = resolveLocalAceConnection();
+  if (localConn) {
+    const indexMatch = resolveLocalAceWorkspaceIndexMatch({ workspaceFolders: localAceWorkspaceFolders });
+    if (indexMatch === false) {
+      warn("localAce skipped: current workspace has no matching CCE index");
+      return false;
+    }
+    return await maybeInjectLocalCodebaseRetrieval({ req, info, cceUrl: localConn.cceUrl, timeoutMs: t, abortSignal });
+  }
+
   const conn = resolveOfficialContextConnection({ feature: "codebase-retrieval", upstreamCompletionURL, upstreamApiToken });
   if (!conn) return false;
   const { completionURL, apiToken } = conn;
-
-  const hardTimeout = Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0 ? Number(timeoutMs) : 120000;
-  const t = Math.max(2000, Math.min(OFFICIAL_CODEBASE_RETRIEVAL_TIMEOUT_MS, Math.floor(hardTimeout * 0.5)));
 
   const baseBlobs = normalizeOfficialBlobsDiff(req.blobs) || { checkpoint_id: null, added_blobs: [], deleted_blobs: [] };
   const userGuidedBlobs = Array.isArray(req.user_guided_blobs) ? req.user_guided_blobs : [];
@@ -101,18 +176,11 @@ async function maybeInjectOfficialCodebaseRetrieval({ req, timeoutMs, abortSigna
       abortSignal
     });
     if (!normalizeString(formatted)) return false;
-
-    const retrievalNode = makeTextRequestNode({ id: -20, text: formatted.trim() });
-    const target = pickInjectionTargetArray(req);
-    if (!target) return false;
-    maybeInjectUserExtraTextParts({ req, target, startId: -30 });
-    target.push(retrievalNode);
-    debug(`officialRetrieval injected: chars=${formatted.length} target_len=${target.length}`);
-    return true;
+    return injectRetrievalText({ req, formatted, source: "officialRetrieval" });
   } catch (err) {
     warn(`officialRetrieval failed (ignored): ${err instanceof Error ? err.message : String(err)}`);
     return false;
   }
 }
 
-module.exports = { maybeInjectOfficialCodebaseRetrieval };
+module.exports = { maybeInjectOfficialCodebaseRetrieval, maybeServeLocalAceAgentCodebaseRetrieval };

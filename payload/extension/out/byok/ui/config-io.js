@@ -41,6 +41,18 @@ function redactConfigSecrets(cfg) {
     p.headers = redactHeaders(p.headers);
   }
 
+  const mcp = asObject(out.mcp);
+  if (Array.isArray(mcp.servers)) {
+    for (const s of mcp.servers) {
+      if (!s || typeof s !== "object") continue;
+      const env = asObject(s.env);
+      for (const k of Object.keys(env)) {
+        if (normalizeString(env[k])) env[k] = REDACTED;
+      }
+      s.env = env;
+    }
+  }
+
   return out;
 }
 
@@ -108,6 +120,28 @@ function mergeConfigPreservingSecrets(currentCfg, incomingCfg) {
     p.headers = mergePreserveSecretsHeaders(curr.headers, p.headers);
   }
   out.providers = nextProviders;
+
+  const currMcpServers = Array.isArray(current.mcp?.servers) ? current.mcp.servers : [];
+  const currByServerName = new Map(currMcpServers.map((s) => [normalizeString(s?.name), s]).filter((x) => x[0]));
+  const nextMcp = asObject(out.mcp);
+  const nextMcpServers = Array.isArray(nextMcp.servers) ? nextMcp.servers : [];
+  for (const s of nextMcpServers) {
+    const name = normalizeString(s?.name);
+    if (!name) continue;
+    const curr = currByServerName.get(name);
+    if (!curr) continue;
+    const currEnv = asObject(curr.env);
+    const incEnv = asObject(s.env);
+    const envOut = { ...incEnv };
+    for (const k of Object.keys(currEnv)) {
+      if (shouldPreserveSecret(currEnv[k], incEnv[k])) {
+        envOut[k] = currEnv[k];
+      }
+    }
+    s.env = envOut;
+  }
+  if (nextMcpServers.length) nextMcp.servers = nextMcpServers;
+  out.mcp = nextMcp;
 
   return out;
 }

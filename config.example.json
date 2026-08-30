@@ -3,7 +3,14 @@
   "official": {
     "completionUrl": "https://acemcp.heroman.wtf/relay/",
     "apiToken": "your_registered_acemcp_token",
-    "disableContextInjection": false
+    "disableContextInjection": false,
+    "localAceEnabled": false,
+    "aceCceUrl": ""
+  },
+  "mcp": {
+    "enabled": false,
+    "injectPosition": "before",
+    "servers": []
   },
   "providers": [
     {

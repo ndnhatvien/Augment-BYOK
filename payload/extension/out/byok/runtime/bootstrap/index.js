@@ -5,6 +5,8 @@ const { ensureConfigManager, state, setRuntimeEnabled, CONFIG_SYNC_KEYS, RUNTIME
 const { openConfigPanel } = require("../../ui/config-panel");
 const { exportConfigWithDialog, importConfigWithDialog, runIoWithUiErrorBoundary } = require("../../ui/config-io");
 const { clearHistorySummaryCacheAll, setHistorySummaryStorage } = require("../../core/augment-history-summary/auto");
+const { McpClient } = require("../../mcp/client");
+const { setMcpClient } = require("../official/mcp-retrieval");
 
 function install({ vscode, getActivate, setActivate }) {
   if (state.installed) return;
@@ -61,6 +63,28 @@ function install({ vscode, getActivate, setActivate }) {
     }
 
     registerCommandsOnce(vscode, ctx, cfgMgr);
+
+    try {
+      const cfg = cfgMgr.get();
+      const mcpCfg = cfg && typeof cfg === "object" ? cfg.mcp : null;
+      const servers = mcpCfg && mcpCfg.enabled === true && Array.isArray(mcpCfg.servers) ? mcpCfg.servers : [];
+      if (servers.length > 0) {
+        info(`MCP: initializing ${servers.length} server(s)...`);
+        const mcpClient = new McpClient(servers);
+        mcpClient
+          .init()
+          .then(() => {
+            info("MCP: client initialized and ready");
+          })
+          .catch((err) => {
+            warn("MCP: init failed (ignored):", err instanceof Error ? err.message : String(err));
+          });
+        setMcpClient(mcpClient);
+      }
+    } catch (err) {
+      warn("MCP: bootstrap init failed (ignored):", err instanceof Error ? err.message : String(err));
+    }
+
     return await origActivate(ctx);
   });
 }

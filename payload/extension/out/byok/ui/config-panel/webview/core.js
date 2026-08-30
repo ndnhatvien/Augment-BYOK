@@ -132,11 +132,11 @@
           if (q && anyVisible && typeof g.open === "boolean") g.open = true;
 
           const badge = g.querySelector ? g.querySelector("[data-endpoint-group-count-badge]") : null;
-          if (badge) badge.textContent = q ? `显示 ${visibleInGroup} / ${totalInGroup}` : `${totalInGroup} total`;
+          if (badge) badge.textContent = q ? `showing ${visibleInGroup} / ${totalInGroup}` : `${totalInGroup} total`;
         }
 
         const countEl = qs("#endpointFilterCount");
-        if (countEl) countEl.textContent = rows.length ? `显示 ${visible} / ${rows.length}` : "";
+        if (countEl) countEl.textContent = rows.length ? `showing ${visible} / ${rows.length}` : "";
       },
       { thresholdMs: 16 }
     );
@@ -236,8 +236,26 @@
         if (officialTokenInput) cfg.official.apiToken = officialTokenInput;
         if (uiState.clearOfficialToken) cfg.official.apiToken = "";
         cfg.official.disableContextInjection = Boolean(qs("#officialDisableContextInjection")?.checked);
+        cfg.official.localAceEnabled = Boolean(qs("#officialLocalAceEnabled")?.checked);
+        cfg.official.aceCceUrl = normalizeStr(qs("#officialAceCceUrl")?.value);
         delete cfg.officialDelegation;
         delete cfg.prompts;
+
+        cfg.mcp = cfg.mcp && typeof cfg.mcp === "object" ? cfg.mcp : {};
+        cfg.mcp.enabled = Boolean(qs("#mcpEnabled")?.checked);
+        const mcpPositionRaw = normalizeStr(qs("#mcpInjectPosition")?.value);
+        if (mcpPositionRaw === "before" || mcpPositionRaw === "after" || mcpPositionRaw === "replace") {
+          cfg.mcp.injectPosition = mcpPositionRaw;
+        }
+        const mcpServersRaw = normalizeStr(qs("#mcpServersJson")?.value);
+        if (!mcpServersRaw) {
+          cfg.mcp.servers = [];
+        } else {
+          try {
+            const parsed = JSON.parse(mcpServersRaw);
+            if (Array.isArray(parsed)) cfg.mcp.servers = parsed;
+          } catch {}
+        }
 
         dom.applyProvidersEditsFromDom(cfg);
         dom.applyRulesEditsFromDom(cfg);

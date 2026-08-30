@@ -75,6 +75,37 @@ function normalizeConfig(raw) {
     } else if (typeof official.disable_context_injection === "boolean") {
       out.official.disableContextInjection = official.disable_context_injection;
     }
+    if (typeof official.localAceEnabled === "boolean") {
+      out.official.localAceEnabled = official.localAceEnabled;
+    } else if (typeof official.local_ace_enabled === "boolean") {
+      out.official.localAceEnabled = official.local_ace_enabled;
+    }
+    const aceCceUrl = normalizeString(official.aceCceUrl);
+    if (aceCceUrl) out.official.aceCceUrl = aceCceUrl;
+  }
+
+  const mcp = asObject(raw.mcp);
+  if (mcp) {
+    const m = out.mcp;
+    if (typeof mcp.enabled === "boolean") m.enabled = mcp.enabled;
+    const injectPosition = normalizeString(mcp.injectPosition);
+    if (injectPosition === "before" || injectPosition === "after" || injectPosition === "replace") {
+      m.injectPosition = injectPosition;
+    }
+    if (Array.isArray(mcp.servers)) {
+      m.servers = mcp.servers
+        .map((s) => {
+          const srv = asObject(s);
+          if (!srv) return null;
+          const name = normalizeString(srv.name);
+          const command = normalizeString(srv.command);
+          if (!name || !command) return null;
+          const args = Array.isArray(srv.args) ? srv.args.map((a) => normalizeString(a)).filter(Boolean) : [];
+          const env = srv.env && typeof srv.env === "object" && !Array.isArray(srv.env) ? srv.env : {};
+          return { name, command, args, env };
+        })
+        .filter(Boolean);
+    }
   }
 
   const historySummary = asObject(raw.historySummary);

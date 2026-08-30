@@ -130,3 +130,60 @@ test("normalizeConfig: drops legacy officialDelegation block", () => {
 
   assert.equal(Object.prototype.hasOwnProperty.call(cfg, "officialDelegation"), false);
 });
+
+test("normalizeConfig: official.localAceEnabled and official.aceCceUrl normalize (camelCase + snake_case)", () => {
+  const cfg = normalizeConfig({
+    official: {
+      localAceEnabled: true,
+      aceCceUrl: "http://127.0.0.1:8765"
+    }
+  });
+  assert.equal(cfg.official.localAceEnabled, true);
+  assert.equal(cfg.official.aceCceUrl, "http://127.0.0.1:8765");
+
+  const snake = normalizeConfig({
+    official: {
+      local_ace_enabled: true,
+      aceCceUrl: "  http://127.0.0.1:9000  "
+    }
+  });
+  assert.equal(snake.official.localAceEnabled, true);
+  assert.equal(snake.official.aceCceUrl, "http://127.0.0.1:9000");
+
+  const off = normalizeConfig({ official: { localAceEnabled: false, aceCceUrl: "" } });
+  assert.equal(off.official.localAceEnabled, false);
+  assert.equal(off.official.aceCceUrl, "");
+});
+
+test("normalizeConfig: mcp block normalizes enabled/injectPosition/servers and drops invalid entries", () => {
+  const cfg = normalizeConfig({
+    mcp: {
+      enabled: true,
+      injectPosition: "replace",
+      servers: [
+        { name: "files", command: "node", args: ["/path/srv.js", "x"], env: { A: "1" } },
+        { name: "", command: "bad", args: [] },
+        { name: "nocmd", command: "  ", args: [] },
+        null
+      ]
+    }
+  });
+  assert.equal(cfg.mcp.enabled, true);
+  assert.equal(cfg.mcp.injectPosition, "replace");
+  assert.equal(cfg.mcp.servers.length, 1);
+  const s = cfg.mcp.servers[0];
+  assert.equal(s.name, "files");
+  assert.equal(s.command, "node");
+  assert.deepEqual(s.args, ["/path/srv.js", "x"]);
+  assert.equal(Object.getPrototypeOf(s.env), null);
+  assert.equal(s.env.A, "1");
+
+  const defaults = normalizeConfig({});
+  assert.equal(defaults.mcp.enabled, false);
+  assert.equal(defaults.mcp.injectPosition, "before");
+  assert.deepEqual(defaults.mcp.servers, []);
+
+  const badPos = normalizeConfig({ mcp: { enabled: true, injectPosition: "sideways", servers: [] } });
+  assert.equal(badPos.mcp.injectPosition, "before");
+});
+

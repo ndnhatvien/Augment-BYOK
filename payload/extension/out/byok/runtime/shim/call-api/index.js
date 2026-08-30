@@ -6,6 +6,7 @@ const { normalizeString, normalizeRawToken, safeTransform, stripUpstreamProvider
 const { getOfficialConnection } = require("../../../config/official");
 const { fetchOfficialGetModels } = require("../../official/get-models");
 const { normalizeUpstreamCompletionURL } = require("../../official/common");
+const { maybeServeLocalAceAgentCodebaseRetrieval } = require("../../official/codebase-retrieval");
 const { ensureModelRegistryFeatureFlags } = require("../../../core/model-registry");
 const {
   makeBackCompletionResult,
@@ -169,6 +170,13 @@ async function maybeHandleCallApi({ endpoint, body, transform, timeoutMs, abortS
   rememberUpstreamCallHost(upstreamCallHost, { stream: false });
   if (route.mode === "official") return undefined;
   if (route.mode === "disabled") {
+    // Local ACE can still serve the codebase-retrieval tool endpoint while the
+    // routing rule stays disabled. Falls back to the empty disabled response
+    // when local ACE is off, the workspace index mismatches, or CCE is down.
+    if (ep === "/agents/codebase-retrieval") {
+      const localAceTool = await maybeServeLocalAceAgentCodebaseRetrieval({ ep, body: requestBody, transform, timeoutMs: t, abortSignal });
+      if (localAceTool !== undefined) return localAceTool;
+    }
     try {
       return safeTransform(transform, { tools: [], agents: [], items: [], data: [], results: [] }, `disabled:${ep}`);
     } catch {

@@ -15,6 +15,7 @@ const { mergeChatResponseMeta } = require("../../../core/chat-response-meta");
 const { maybeInjectOfficialCodebaseRetrieval } = require("../../official/codebase-retrieval");
 const { maybeInjectOfficialContextCanvas } = require("../../official/context-canvas");
 const { maybeInjectOfficialExternalSources } = require("../../official/external-sources");
+const { maybeInjectMcpContext } = require("../../official/mcp-retrieval");
 const { maybeHydrateAssetNodesFromUpstream } = require("../../upstream/assets");
 const { maybeHydrateCheckpointNodesFromUpstream } = require("../../upstream/checkpoints");
 const { maybeBuildDelegatedAugmentChatRequest } = require("../../upstream/official-chat-delegation");
@@ -212,6 +213,9 @@ async function prepareAugmentChatRequestForByok({
     })
   );
 
+  await runStep("mcp context inject failed (ignored)", async () =>
+    await maybeInjectMcpContext({ req, timeoutMs, abortSignal, mcpConfig: cfg?.mcp })
+  );
   await runStep("official codebase retrieval inject failed (ignored)", async () =>
     await maybeInjectOfficialCodebaseRetrieval({ req, timeoutMs, abortSignal, upstreamCompletionURL, upstreamApiToken })
   );

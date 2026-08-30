@@ -124,17 +124,17 @@
 	          </div>
 	        </header>
 	        <div class="settings-panel__body">
-	          <div class="text-muted text-xs">覆盖：models / 非流式 / 流式 / chat-stream / 真实工具集(schema+tool_use 往返) / 真实工具执行(toolsModel.callTool 全覆盖) / 多模态 / 上下文压缩(historySummary) / 缓存命中。</div>
+	          <div class="text-muted text-xs">Coverage: models / non-streaming / streaming / chat-stream / real tool set (schema + tool_use round-trip) / real tool execution (toolsModel.callTool full coverage) / multimodal / context compression (historySummary) / cache hits.</div>
 	          <div class="selftest-grid">
 	            <div class="selftest-controls">
 	              <div class="form-group">
-	                <label class="form-label">Providers（可多选）</label>
+	                <label class="form-label">Providers (multi-select)</label>
 	                <div class="selftest-provider-list" role="group" aria-label="Self Test Providers">${selfTestProvidersHtml}</div>
-	                <div class="text-muted text-xs">提示：不选=全部。</div>
+	                <div class="text-muted text-xs">Note: none selected = all.</div>
 	              </div>
 	              <div class="flex-row flex-wrap row tight">
-	                <button class="btn btn--small" data-action="selfTestSelectAllProviders" ${stRunning || !providers.length ? "disabled" : ""}>全选</button>
-	                <button class="btn btn--small" data-action="selfTestClearSelectedProviders" ${stRunning ? "disabled" : ""}>清空</button>
+	                <button class="btn btn--small" data-action="selfTestSelectAllProviders" ${stRunning || !providers.length ? "disabled" : ""}>Select all</button>
+	                <button class="btn btn--small" data-action="selfTestClearSelectedProviders" ${stRunning ? "disabled" : ""}>Clear</button>
 	                <span class="text-muted text-xs">${escapeHtml(stProviderKeys.length ? `selected=${stProviderKeys.length}` : `selected=all (${providers.length})`)}</span>
 	              </div>
 	              ${summarizeSelfTestReport()}
@@ -162,19 +162,19 @@
 	            ${headerBadges}
 	          </h1>
 	          <div class="text-muted text-xs" id="status">${escapeHtml(status || "Ready.")}</div>
-	          <div class="text-muted text-xs">提示：保存后生效；刷新会丢弃未保存修改。</div>
+	          <div class="text-muted text-xs">Note: changes apply after saving; refreshing discards unsaved edits.</div>
 	        </div>
 	        <div class="header-actions flex-row flex-wrap">
-	          <label class="checkbox-wrapper" title="开启或关闭 BYOK 运行时（关闭=回滚到官方）">
+	          <label class="checkbox-wrapper" title="Enable or disable the BYOK runtime (off = roll back to official)">
 	            <input type="checkbox" id="runtimeEnabledToggle" ${runtimeEnabledFlag ? "checked" : ""} />
-	            <span>启用 BYOK</span>
+	            <span>Enable BYOK</span>
 	          </label>
-	          <button class="btn btn--small" data-action="importConfig" title="从 JSON 文件导入配置（会覆盖当前配置）">导入</button>
-	          <button class="btn btn--small" data-action="exportConfig" title="导出当前配置到 JSON 文件（可选择是否包含密钥）">导出</button>
-	          <button class="btn btn--small" data-action="reload" title="重新加载配置（丢弃未保存修改）">刷新</button>
-	          <button class="btn btn--small btn--primary" data-action="save" title="保存配置到 extension storage">保存</button>
-	          <button class="btn btn--small" data-action="reset" title="重置为默认配置（会清空已存储的 token/key）">重置</button>
-	          <button class="btn btn--small" data-action="reloadWindow" title="重载 VS Code 窗口（会重载插件与主面板）">重载</button>
+	          <button class="btn btn--small" data-action="importConfig" title="Import configuration from a JSON file (overwrites current config)">Import</button>
+	          <button class="btn btn--small" data-action="exportConfig" title="Export current configuration to a JSON file (optionally including secrets)">Export</button>
+	          <button class="btn btn--small" data-action="reload" title="Reload configuration (discards unsaved edits)">Refresh</button>
+	          <button class="btn btn--small btn--primary" data-action="save" title="Save configuration to extension storage">Save</button>
+	          <button class="btn btn--small" data-action="reset" title="Reset to default configuration (clears stored tokens/keys)">Reset</button>
+	          <button class="btn btn--small" data-action="reloadWindow" title="Reload the VS Code window (reloads extension and main panel)">Reload</button>
 	        </div>
 	      </header>
 	    `;
@@ -189,23 +189,18 @@
       ? `<span class="status-badge status-badge--success">token: set</span>`
       : `<span class="status-badge status-badge--warning">token: empty</span>`;
     const officialAssemblerBadge = `<span class="status-badge status-badge--success">assembler: official</span>`;
-    const contextInjectionDisabled = off.disableContextInjection === true;
-    const contextInjectionBadge = contextInjectionDisabled
-      ? `<span class="status-badge status-badge--warning">context: off</span>`
-      : `<span class="status-badge status-badge--success">context: on</span>`;
 
     const official = `
 	      <section class="settings-panel">
 		        <header class="settings-panel__header">
 		          <div class="flex-row flex-wrap">
 		            <span>Official</span>
-		            ${completionUrlBadge}
-		            ${tokenBadge}
-		            ${contextInjectionBadge}
-		            ${officialAssemblerBadge}
+            ${completionUrlBadge}
+            ${tokenBadge}
+            ${officialAssemblerBadge}
 		          </div>
 	          <div class="flex-row" style="min-width:0;">
-	            <button class="btn btn--small" data-action="testOfficialGetModels" ${otRunning ? "disabled" : ""} title="/get-models">测试连接</button>
+	            <button class="btn btn--small" data-action="testOfficialGetModels" ${otRunning ? "disabled" : ""} title="/get-models">Test connection</button>
 	            ${otBadge}
 	            ${otTextHtml}
 	          </div>
@@ -215,7 +210,7 @@
 	            <div class="form-group">
 	              <label class="form-label" for="officialCompletionUrl">Completion URL</label>
 	              <input type="url" id="officialCompletionUrl" value="${escapeHtml(off.completionUrl ?? "")}" placeholder="https://acemcp.heroman.wtf/relay/" />
-	              <div class="text-muted text-xs">默认 <span class="text-mono">https://acemcp.heroman.wtf/relay/</span>；私有租户填你的域名。用于 <span class="text-mono">/get-models</span> 合并（以及官方链路请求）。</div>
+	              <div class="text-muted text-xs">Default <span class="text-mono">https://acemcp.heroman.wtf/relay/</span>; private tenants fill in their own domain. Used for <span class="text-mono">/get-models</span> merging (and the official path requests).</div>
 	            </div>
 		            <div class="form-group">
 		              <div class="flex-between flex-row">
@@ -224,16 +219,9 @@
 		              </div>
 	              <div class="flex-row">
 	                <input type="password" id="officialApiToken" value="" placeholder="${off.apiToken ? "(set)" : "(empty)"}" />
-	                <button class="btn btn--icon btn--danger" data-action="clearOfficialToken" title="清空 Token">✕</button>
-		              </div>
-		              <div class="text-muted text-xs">请到 <span class="text-mono">https://acemcp.heroman.wtf/login</span> 自行注册并填写 API Token；不再内置或随机分配 key。留空=不改；点击 ✕=清空（保存后生效）。</div>
-		            </div>
-		            <div class="form-group">
-		              <label class="form-label flex-row" style="gap:8px;align-items:center;">
-		                <input type="checkbox" id="officialDisableContextInjection" ${contextInjectionDisabled ? "checked" : ""} />
-		                <span>禁用 Context Engine 自动注入</span>
-		              </label>
-		              <div class="text-muted text-xs">关闭后 chat 前不再请求 <span class="text-mono">agents/codebase-retrieval</span> / <span class="text-mono">context-canvas</span> / <span class="text-mono">search-external-sources</span>。仍可用 Token 做 <span class="text-mono">/get-models</span>。</div>
+	                <button class="btn btn--icon btn--danger" data-action="clearOfficialToken" title="Clear token">✕</button>
+	              </div>
+	              <div class="text-muted text-xs">Register at <span class="text-mono">https://acemcp.heroman.wtf/login</span> and fill in your API Token; no keys are bundled or randomly assigned. Leave empty = no change; click ✕ = clear (applies after save).</div>
 		            </div>
 		          </div>
 		        </div>
@@ -249,6 +237,11 @@
       typeof ns.renderHistorySummaryPanel === "function"
         ? ns.renderHistorySummaryPanel({ cfg: c, providers })
         : `<div class="text-muted text-xs">historySummary renderer missing</div>`;
+
+    const contextInjectionHtml =
+      typeof ns.renderContextInjectionPanel === "function"
+        ? ns.renderContextInjectionPanel({ cfg: c })
+        : `<div class="text-muted text-xs">context injection renderer missing</div>`;
 
     const endpointRules =
       typeof ns.renderEndpointRulesPanel === "function"
@@ -267,7 +260,7 @@
               <div class="modal-backdrop">
                 <div class="modal card">
                   <div class="title">Reset to defaults?</div>
-                  <div class="hint">这会覆盖存储在 extension globalState 里的 BYOK 配置（token/key 也会被清空）。</div>
+                  <div class="hint">This overwrites the BYOK configuration stored in extension globalState (tokens/keys will also be cleared).</div>
                   <div class="row" style="margin-top:10px;justify-content:flex-end;">
                     <button class="btn" data-action="modalCancel">Cancel</button>
                     <button class="btn danger" data-action="confirmReset">Reset</button>
@@ -288,7 +281,7 @@
                   mKind === "models"
                     ? (Array.isArray(mProvider.models) ? mProvider.models : []).join("\n")
                     : JSON.stringify(mKind === "headers" ? (mProvider.headers ?? {}) : (mProvider.requestDefaults ?? {}), null, 2);
-                const hint = mKind === "models" ? "每行一个 model id（用于下拉选择与 /get-models 注入）。" : "请输入 JSON 对象（会在 Save 时持久化）。";
+                const hint = mKind === "models" ? "One model id per line (used for the dropdown and /get-models injection)." : "Enter a JSON object (persisted on Save).";
 
                 return `
               <div class="modal-backdrop">
@@ -309,9 +302,10 @@
 	      <div class="app-container">
 	        ${appHeader}
 	        ${official}
-	        ${providersHtml}
-	        ${historySummaryHtml}
-	        ${endpointRules}
+        ${contextInjectionHtml}
+        ${providersHtml}
+        ${historySummaryHtml}
+        ${endpointRules}
 	        ${selfTestHtml}
 	      </div>
 	      ${modalHtml}

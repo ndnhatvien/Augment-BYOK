@@ -8,7 +8,7 @@ const LLM_ENDPOINT_SPECS = [
   {
     endpoint: "/get-models",
     kind: "callApi",
-    meaning: "拉取可用模型/feature flags（并可注入 BYOK models registry）",
+    meaning: "Fetch available models / feature flags (and inject into the BYOK models registry)",
     upstreamBackType: "BackGetModelsResult",
     inputKeys: [],
     outputKeys: ["default_model", "models[].{name,suggested_prefix_char_count,suggested_suffix_char_count,completion_timeout_ms?,internal_name?}", "feature_flags", "languages?", "user_tier?", "user?"],
@@ -17,7 +17,7 @@ const LLM_ENDPOINT_SPECS = [
   {
     endpoint: "/chat",
     kind: "callApi",
-    meaning: "非流式 chat（或某些场景的 chat 请求）",
+    meaning: "Non-streaming chat (or chat requests in some scenarios)",
     upstreamBackType: "BackChatResult",
     inputKeys: ["model", "message", "chat_history", "prefix?", "selected_code?", "suffix?", "path?", "lang?", "blobs?", "user_guidelines?", "workspace_guidelines?", "tool_definitions?", "nodes?", "mode?", "persona_type?", "agent_memories?", "external_source_ids?", "user_guided_blobs?", "context_code_exchange_request_id?", "disable_auto_external_sources?", "enable_preference_collection?", "third_party_override? (stripped)"],
     outputKeys: ["text", "unknown_blob_names[]", "checkpoint_not_found", "workspace_file_chunks[].{char_start,char_end,blob_name}", "nodes?", "stop_reason?"],
@@ -26,7 +26,7 @@ const LLM_ENDPOINT_SPECS = [
   {
     endpoint: "/completion",
     kind: "callApi",
-    meaning: "编辑器 inline completion（短文本）",
+    meaning: "Editor inline completion (short text)",
     upstreamBackType: "BackCompletionResult",
     inputKeys: ["model", "prompt", "suffix?", "path?", "lang?", "blob_name?", "prefix_begin?", "cursor_position?", "suffix_end?", "blobs?", "recency_info?", "probe_only?", "sequence_id?", "filter_threshold?", "edit_events?"],
     outputKeys: ["text (or completion_items)", "unknown_blob_names[]", "checkpoint_not_found", "suggested_prefix_char_count?", "suggested_suffix_char_count?", "completion_timeout_ms?"],
@@ -35,7 +35,7 @@ const LLM_ENDPOINT_SPECS = [
   {
     endpoint: "/chat-input-completion",
     kind: "callApi",
-    meaning: "Chat 输入框智能补全",
+    meaning: "Chat input box smart completion",
     upstreamBackType: "BackCompletionResult",
     inputKeys: ["model", "prompt", "suffix?", "path?", "lang?", "blobs?", "recency_info?", "sequence_id?", "edit_events?"],
     outputKeys: ["text (or completion_items)", "unknown_blob_names[]", "checkpoint_not_found"],
@@ -44,7 +44,7 @@ const LLM_ENDPOINT_SPECS = [
   {
     endpoint: "/chat-stream",
     kind: "callApiStream",
-    meaning: "核心聊天流（Augment NDJSON）",
+    meaning: "Core chat stream (Augment NDJSON)",
     upstreamBackType: "BackChatResult (stream chunks)",
     inputKeys: ["model", "message", "chat_history", "prefix?", "selected_code?", "suffix?", "path?", "lang?", "blobs?", "user_guidelines?", "workspace_guidelines?", "rules?", "tool_definitions?", "nodes?", "mode?", "persona_type?", "agent_memories?", "feature_detection_flags?", "external_source_ids?", "user_guided_blobs?", "context_code_exchange_request_id?", "disable_auto_external_sources?", "silent?", "conversation_id?", "canvas_id?", "third_party_override? (stripped)"],
     outputKeys: ["text (delta)", "unknown_blob_names[]", "checkpoint_not_found", "workspace_file_chunks[].{char_start,char_end,blob_name}", "nodes? (first chunk only)", "stop_reason?"],
@@ -53,7 +53,7 @@ const LLM_ENDPOINT_SPECS = [
   {
     endpoint: "/prompt-enhancer",
     kind: "callApiStream",
-    meaning: "提示词增强（stream）",
+    meaning: "Prompt enhancer (stream)",
     upstreamBackType: "BackChatResult (stream chunks)",
     inputKeys: ["nodes", "chat_history", "blobs?", "conversation_id?", "model", "mode?", "user_guided_blobs?", "external_source_ids?", "user_guidelines?", "workspace_guidelines?", "rules?"],
     outputKeys: ["text (enhanced prompt delta)", "unknown_blob_names[]", "checkpoint_not_found", "workspace_file_chunks[]", "nodes[] (first chunk only)"],
@@ -62,7 +62,7 @@ const LLM_ENDPOINT_SPECS = [
   {
     endpoint: "/generate-commit-message-stream",
     kind: "callApiStream",
-    meaning: "Commit message（stream）",
+    meaning: "Commit message (stream)",
     upstreamBackType: "BackChatResult (stream chunks)",
     inputKeys: ["diff", "changed_file_stats?", "relevant_commit_messages?", "example_commit_messages?"],
     outputKeys: ["text (delta)", "unknown_blob_names[]", "checkpoint_not_found", "workspace_file_chunks[]", "nodes[]"],

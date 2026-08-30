@@ -33,7 +33,7 @@
               ? "custom"
               : "";
       const hint =
-        v === "xhigh" ? "OpenAI Responses：reasoning.effort=xhigh" : "OpenAI Responses：reasoning.effort=low|medium|high|xhigh";
+        v === "xhigh" ? "OpenAI Responses: reasoning.effort=xhigh" : "OpenAI Responses: reasoning.effort=low|medium|high|xhigh";
       return { supported: true, value: v, hint };
     }
 
@@ -51,10 +51,10 @@
         else if (bt === 8192) v = "xhigh";
         else v = "custom";
       }
-      return { supported: true, value: v, hint: "Anthropic：写入 requestDefaults.thinking.budget_tokens（Low/Medium/High/xhigh）" };
+      return { supported: true, value: v, hint: "Anthropic: writes requestDefaults.thinking.budget_tokens (Low/Medium/High/xhigh)" };
     }
 
-    return { supported: false, value: "", hint: "该类型不支持（可用 Defaults JSON 自定义）" };
+    return { supported: false, value: "", hint: "This type is not supported (can customize via the Defaults JSON)" };
   }
 
   ns.renderProvidersPanel = function renderProvidersPanel({ providers, providerExpanded } = {}) {
@@ -111,8 +111,8 @@
                   ${baseUrl ? `<span class="text-muted text-xs text-mono">${escapeHtml(baseUrl)}</span>` : `<span class="text-muted text-xs">baseUrl: (empty)</span>`}
                 </div>
                 <div class="flex-row flex-wrap">
-                  <button class="btn btn--small" data-action="makeProviderDefault" data-idx="${idx}" ${idx === 0 ? "disabled" : ""}>设为默认</button>
-                  <button class="btn btn--small btn--danger" data-action="removeProvider" data-idx="${idx}">删除</button>
+                  <button class="btn btn--small" data-action="makeProviderDefault" data-idx="${idx}" ${idx === 0 ? "disabled" : ""}>Set default</button>
+                  <button class="btn btn--small btn--danger" data-action="removeProvider" data-idx="${idx}">Remove</button>
                 </div>
               </div>
               <div class="provider-card__content-wrapper">
@@ -135,11 +135,11 @@
                       <div class="form-group form-grid--full">
                         <div class="flex-between flex-row">
                           <label class="form-label">Base URL</label>
-                          <button class="btn btn--small" data-action="setProviderBaseUrlDefault" data-idx="${idx}" title="使用该 Type 的默认 Base URL">默认</button>
+                          <button class="btn btn--small" data-action="setProviderBaseUrlDefault" data-idx="${idx}" title="Use this Type's default Base URL">Default</button>
                         </div>
                         <input type="url" class="${baseUrlIssue.inputCls}" data-p-idx="${idx}" data-p-key="baseUrl" value="${escapeHtml(baseUrl)}" placeholder="${escapeHtml(baseUrlPlaceholder)}" />
                         <div class="${baseUrlIssue.cls}" data-provider-idx="${idx}" data-provider-issue-for="baseUrl">${escapeHtml(baseUrlIssue.text)}</div>
-                        <div class="text-muted text-xs">必须是 http(s) URL。示例：<span class="text-mono">${escapeHtml(baseUrlPlaceholder)}</span></div>
+                        <div class="text-muted text-xs">Must be an http(s) URL. Example: <span class="text-mono">${escapeHtml(baseUrlPlaceholder)}</span></div>
                       </div>
                       <div class="form-group form-grid--full">
                         <div class="flex-between flex-row">
@@ -148,15 +148,15 @@
                         </div>
                         <div class="flex-row">
                           <input type="password" data-p-idx="${idx}" data-p-key="apiKeyInput" value="" placeholder="${apiKeySet ? "(set)" : "(empty)"}" />
-                          <button class="btn btn--icon btn--danger" data-action="clearProviderKey" data-idx="${idx}" title="清空 API Key">✕</button>
+                          <button class="btn btn--icon btn--danger" data-action="clearProviderKey" data-idx="${idx}" title="Clear API key">✕</button>
                         </div>
                       </div>
                       <div class="form-group">
                         <label class="form-label">Models</label>
                         <div class="flex-row flex-wrap">
                           <span class="status-badge">${escapeHtml(String(models.length))}</span>
-                          <button class="btn btn--small" data-action="fetchProviderModels" data-idx="${idx}">拉取</button>
-                          <button class="btn btn--small" data-action="editProviderModels" data-idx="${idx}">编辑</button>
+                          <button class="btn btn--small" data-action="fetchProviderModels" data-idx="${idx}">Fetch</button>
+                          <button class="btn btn--small" data-action="editProviderModels" data-idx="${idx}">Edit</button>
                         </div>
                         <div class="${modelsIssue.cls}" data-provider-idx="${idx}" data-provider-issue-for="models">${escapeHtml(modelsIssue.text)}</div>
                       </div>
@@ -168,7 +168,7 @@
                         </select>
                       </div>
                       <div class="form-group">
-                        <label class="form-label">思考等级</label>
+                        <label class="form-label">Thinking level</label>
                         <select data-p-idx="${idx}" data-p-key="thinkingLevel" ${thinkingUi.supported ? "" : "disabled"}>
                           ${optionHtml({ value: "", label: "(Default)", selected: thinkingUi.value === "" })}
                           ${optionHtml({ value: "low", label: "Low", selected: thinkingUi.value === "low" })}
@@ -200,14 +200,14 @@
           <header class="settings-panel__header">
             <span>Providers</span>
             <div class="flex-row flex-wrap">
-              <button class="btn btn--small btn--primary" data-action="addProvider">+ 新增 Provider</button>
+              <button class="btn btn--small btn--primary" data-action="addProvider">+ Add Provider</button>
             </div>
           </header>
           <div class="settings-panel__body">
-            <div class="text-muted text-xs">约定：列表第 1 个（<span class="text-mono">providers[0]</span>）为默认 BYOK provider。</div>
+            <div class="text-muted text-xs">Convention: the first provider in the list (<span class="text-mono">providers[0]</span>) is the default BYOK provider.</div>
             <div style="height:8px;"></div>
             <div class="provider-list">
-              ${list || `<div class="text-muted" style="text-align:center;padding:20px;">暂无 Provider，请点击右上角新增。</div>`}
+              ${list || `<div class="text-muted" style="text-align:center;padding:20px;">No providers yet; click "Add Provider" in the top-right.</div>`}
             </div>
           </div>
         </section>

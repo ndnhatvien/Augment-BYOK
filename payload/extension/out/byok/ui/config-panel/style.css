@@ -263,6 +263,12 @@ body {
   gap: 6px;
 }
 
+.form-group-divider {
+  height: 1px;
+  background: var(--vscode-editor-lineHighlightBorder, var(--color-border));
+  margin: 4px 0 8px;
+}
+
 .field-msg {
   font-size: 0.85em;
   line-height: 1.3;
