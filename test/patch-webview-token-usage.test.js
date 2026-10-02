@@ -59,6 +59,21 @@ test("patchWebviewTokenUsage: injects token usage display into assistant message
   });
 });
 
+test("patchWebviewTokenUsage: tolerates renamed minified mount var (upstream 0.904.0)", () => {
+  withTempDir("augment-byok-webview-tu-", (dir) => {
+    const extDir = path.join(dir, "extension");
+    const assetsDir = path.join(extDir, "common-webviews", "assets");
+    const filePath = path.join(assetsDir, "main-panel-test.js");
+
+    const renamed = makeFixtureSrc().replace("n(o,m),he(),a()}", "n(o,f),he(),a()}");
+    writeUtf8(filePath, renamed + "\n");
+
+    const result = patchWebviewTokenUsage(extDir);
+    assert.equal(result.changed, true);
+    assert.ok(readUtf8(filePath).includes("data-byok-token-usage"), "DOM injection missing");
+  });
+});
+
 test("patchWebviewTokenUsage: refuses ambiguous anchor", () => {
   withTempDir("augment-byok-webview-tu-", (dir) => {
     const extDir = path.join(dir, "extension");

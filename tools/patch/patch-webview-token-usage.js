@@ -31,7 +31,7 @@ function patchWebviewTokenUsageAsset(filePath) {
 
   // 锚点：assistant 消息气泡组件（nS）的挂载收尾。
   // 在该点注入一个自包含 IIFE，闭包捕获组件作用域内的 o（挂载点）与 s()（exchange getter）。
-  const anchor = /s\(\)&&s\(\)\.status===es\.failed&&\$\(I\)\}\),n\(o,m\),he\(\),a\(\)/g;
+  const anchor = /s\(\)&&s\(\)\.status===es\.failed&&\$\(I\)\}\),n\(o,\w+\),he\(\),a\(\)/g;
   const injection = buildTokenUsageInjection();
 
   let out = replaceOnceRegex(original, anchor, (m) => {
