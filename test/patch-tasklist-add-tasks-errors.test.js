@@ -47,3 +47,29 @@ test("patchTasklistAddTasksErrors: reports failures in current ternary return bu
     assert.equal(r2.changed, false);
   });
 });
+
+test("patchTasklistAddTasksErrors: reports failures in if-return bundle shape (upstream 0.904.0)", () => {
+  withTempDir("augment-byok-task-errors-", (dir) => {
+    const filePath = path.join(dir, "extension.js");
+    const src = [
+      `class AddTasksTool{`,
+      `async handleBatchCreation(e,t){const r=await this._taskManager.getOrCreateTaskListId(e);if(!r)return Pt("No task list found. [TL005]");const n=await this._taskManager.getHydratedTask(r);if(!n)return Pt(\`Task with UUID \${r} not found.\`);const i=[];for(const o of t){i.push(o)}const a=await this._taskManager.getHydratedTask(r);if(!a)return Pt("Failed to retrieve updated task tree.");const s=Ig.formatBulkUpdateResponse(dD(n,a));return{...Pr(s),plan:a}}}`,
+      `}`
+    ].join("\n");
+    writeUtf8(filePath, src);
+
+    const r1 = patchTasklistAddTasksErrors(filePath);
+    assert.equal(r1.changed, true);
+
+    const out = readUtf8(filePath);
+    assert.ok(out.includes("__augment_byok_tasklist_add_tasks_errors_patched_v1"));
+    assert.ok(out.includes('if(!a)return Pt("Failed to retrieve updated task tree.");'));
+    assert.ok(out.includes("let __byok_add_tasks_text=Ig.formatBulkUpdateResponse(dD(n,a));"));
+    assert.ok(out.includes("let __byok_failed=i.filter(t=>t&&t.success===!1);"));
+    assert.ok(out.includes('return{...Pt("Failed to add task(s)."+__byok_msg),plan:a}'));
+    assert.ok(out.includes("return{...Pr(__byok_add_tasks_text),plan:a}"));
+
+    const r2 = patchTasklistAddTasksErrors(filePath);
+    assert.equal(r2.changed, false);
+  });
+});
