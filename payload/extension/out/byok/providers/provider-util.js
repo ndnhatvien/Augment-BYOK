@@ -132,8 +132,8 @@ async function assertSseResponse(resp, { label, expectedHint, previewChars } = {
   if (contentType.includes("text/event-stream")) return;
   const lim = Number.isFinite(Number(previewChars)) && Number(previewChars) > 0 ? Number(previewChars) : 500;
   const detail = await readHttpErrorDetail(resp, { maxChars: lim });
-  const hint = normalizeString(expectedHint) ? `；${String(expectedHint).trim()}` : "";
-  throw new Error(`${normalizeString(label) || "SSE"} 响应不是 SSE（content-type=${contentType || "unknown"}）${hint}；detail: ${detail}`.trim());
+  const hint = normalizeString(expectedHint) ? `; ${String(expectedHint).trim()}` : "";
+  throw new Error(`${normalizeString(label) || "SSE"} response is not SSE (content-type=${contentType || "unknown"})${hint}; detail: ${detail}`.trim());
 }
 
 module.exports = {

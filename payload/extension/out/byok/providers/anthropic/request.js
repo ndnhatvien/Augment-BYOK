@@ -166,7 +166,9 @@ function buildAnthropicSystemBlocks(system) {
 }
 
 function buildAnthropicRequest({ baseUrl, apiKey, model, system, messages, tools, extraHeaders, requestDefaults, stream, includeToolChoice, systemAsBlocks, messagesAsBlocks }) {
-  const url = joinBaseUrl(requireString(baseUrl, "Anthropic baseUrl"), "messages");
+  const rawBase = normalizeString(baseUrl).replace(/\/+$/, "");
+  const normalizedBase = rawBase === "https://api.anthropic.com" || rawBase === "http://api.anthropic.com" ? `${rawBase}/v1` : rawBase;
+  const url = joinBaseUrl(requireString(normalizedBase, "Anthropic baseUrl"), "messages");
   const key = normalizeRawToken(apiKey);
   const extra = extraHeaders && typeof extraHeaders === "object" ? extraHeaders : {};
   if (!key && Object.keys(extra).length === 0) throw new Error("Anthropic apiKey 未配置（且 headers 为空）");

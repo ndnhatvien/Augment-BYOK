@@ -183,10 +183,10 @@ async function exportConfigWithDialog({ vscode, cfg, defaultFileName } = {}) {
 
   const pick = await vscode.window.showQuickPick(
     [
-      { label: "Export (include secrets)", detail: "包含 apiToken/apiKey/authorization 等敏感字段；用于备份/迁移" },
-      { label: "Export (redact secrets)", detail: "将敏感字段替换为 <redacted>；用于分享配置模板" }
+      { label: "Export (include secrets)", detail: "Includes sensitive fields like apiToken/apiKey/authorization; for backup/migration" },
+      { label: "Export (redact secrets)", detail: "Replaces sensitive fields with <redacted>; for sharing configuration templates" }
     ],
-    { placeHolder: "选择导出方式" }
+    { placeHolder: "Select export mode" }
   );
   const mode = normalizeString(pick?.label);
   if (!mode) return { ok: false, reason: "canceled" };
@@ -212,12 +212,12 @@ async function importConfigWithDialog({ vscode, cfgMgr, requireConfirm, preserve
 
   if (requireConfirm) {
     const pick = await vscode.window.showWarningMessage(
-      "导入会覆盖当前 BYOK 配置（建议先导出备份）。",
+      "Import will overwrite current BYOK configuration (backing up first is recommended).",
       { modal: true },
-      preserveSecretsByDefault ? "继续导入" : "继续",
-      "取消"
+      preserveSecretsByDefault ? "Continue Import" : "Continue",
+      "Cancel"
     );
-    if (pick !== (preserveSecretsByDefault ? "继续导入" : "继续")) return { ok: false, reason: "canceled" };
+    if (pick !== (preserveSecretsByDefault ? "Continue Import" : "Continue")) return { ok: false, reason: "canceled" };
   }
 
   const Uri = vscode.Uri;
@@ -235,7 +235,7 @@ async function importConfigWithDialog({ vscode, cfgMgr, requireConfirm, preserve
     parsed = JSON.parse(String(rawText || ""));
   } catch (err) {
     const m = err instanceof Error ? err.message : String(err);
-    throw new Error(`配置文件不是有效 JSON: ${m}`.trim());
+    throw new Error(`Configuration file is not valid JSON: ${m}`.trim());
   }
 
   const imported = normalizeConfig(parsed);
@@ -243,10 +243,10 @@ async function importConfigWithDialog({ vscode, cfgMgr, requireConfirm, preserve
 
   const pick = await vscode.window.showQuickPick(
     [
-      { label: "Merge (preserve existing secrets)", detail: "推荐：导入配置但保留当前已存储的 token/key（当导入文件为空或 <redacted>）" },
-      { label: "Replace (overwrite everything)", detail: "完全用导入文件覆盖（token/key 也会被覆盖/清空）" }
+      { label: "Merge (preserve existing secrets)", detail: "Recommended: Import configuration while preserving existing tokens/keys (when imported values are empty or <redacted>)" },
+      { label: "Replace (overwrite everything)", detail: "Completely overwrite with imported file (tokens/keys will also be overwritten/cleared)" }
     ],
-    { placeHolder: "选择导入方式" }
+    { placeHolder: "Select import mode" }
   );
   const mode = normalizeString(pick?.label);
   if (!mode) return { ok: false, reason: "canceled" };

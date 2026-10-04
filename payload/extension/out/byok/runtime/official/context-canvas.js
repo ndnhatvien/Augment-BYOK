@@ -13,7 +13,7 @@ const CONTEXT_CANVAS_CACHE = new Map();
 
 async function fetchOfficialContextCanvasList({ completionURL, apiToken, pageSize, pageToken, timeoutMs, abortSignal }) {
   const url = joinBaseUrl(normalizeString(completionURL), "context-canvas/list");
-  if (!url) throw new Error("completionURL 无效（无法请求官方 context-canvas/list）");
+  if (!url) throw new Error("Invalid completionURL (cannot request official context-canvas/list)");
   const headers = { "content-type": "application/json" };
   if (apiToken) headers.authorization = `Bearer ${apiToken}`;
   const page_size = Number.isFinite(Number(pageSize)) && Number(pageSize) > 0 ? Math.floor(Number(pageSize)) : 100;
@@ -176,4 +176,7 @@ async function maybeInjectOfficialContextCanvas({ req, timeoutMs, abortSignal, u
   }
 }
 
-module.exports = { maybeInjectOfficialContextCanvas };
+module.exports = {
+  maybeInjectOfficialContextCanvas,
+  fetchOfficialContextCanvasList
+};

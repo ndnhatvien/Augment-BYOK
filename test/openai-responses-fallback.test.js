@@ -232,7 +232,7 @@ test("openai-responses complete: stream fallback surfaces failed response event"
             extraHeaders: {},
             requestDefaults: {}
           }),
-        /stream fallback 失败: OpenAI\(responses-stream\) upstream error: invalid_request_error: stream bad request/
+        /stream fallback failed: OpenAI\(responses-stream\) upstream error: invalid_request_error: stream bad request/
       );
       assert.equal(calls.length, 2);
     }

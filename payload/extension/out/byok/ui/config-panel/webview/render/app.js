@@ -4,24 +4,6 @@
   const ns = (window.__byokCfgPanel = window.__byokCfgPanel || {});
   const { normalizeStr, uniq, escapeHtml, hasVisibleSecretValue } = ns;
 
-  function computeOfficialTestUi(officialTest) {
-    const ot = officialTest && typeof officialTest === "object" ? officialTest : {};
-    const running = ot.running === true;
-    const ok = ot.ok === true ? true : ot.ok === false ? false : null;
-    const text = normalizeStr(ot.text);
-    const textShort = text.length > 140 ? text.slice(0, 140) + "…" : text;
-    const badgeHtml = running
-      ? `<span class="status-badge status-badge--warning">testing</span>`
-      : ok === true
-        ? `<span class="status-badge status-badge--success">ok</span>`
-        : ok === false
-          ? `<span class="status-badge status-badge--error">failed</span>`
-          : "";
-    const textHtml = textShort
-      ? `<span class="text-muted text-mono text-xs inline-ellipsis"${text !== textShort ? ` title="${escapeHtml(text)}"` : ""}>${escapeHtml(textShort)}</span>`
-      : "";
-    return { running, ok, text, textShort, badgeHtml, textHtml };
-  }
 
   function summarizeSelfTestReportHtml(stReport) {
     if (!stReport) return "";
@@ -103,10 +85,6 @@
     const isDirty = dirty === true;
     const runtimeEnabledFlag = runtimeEnabled === true;
 
-    const otUi = computeOfficialTestUi(officialTest);
-    const otRunning = otUi.running;
-    const otBadge = otUi.badgeHtml;
-    const otTextHtml = otUi.textHtml;
 
     const summarizeSelfTestReport = () => summarizeSelfTestReportHtml(stReport);
 
@@ -179,54 +157,12 @@
 	      </header>
 	    `;
 
-    const completionUrl = normalizeStr(off.completionUrl ?? "");
-    const completionUrlValid = !completionUrl || /^https?:\/\//i.test(completionUrl);
-    const completionUrlBadge = completionUrlValid
-      ? `<span class="status-badge status-badge--success">url: ok</span>`
-      : `<span class="status-badge status-badge--error">url: invalid</span>`;
-    const tokenSet = typeof hasVisibleSecretValue === "function" ? hasVisibleSecretValue(off.apiToken) : Boolean(normalizeStr(off.apiToken));
-    const tokenBadge = tokenSet
-      ? `<span class="status-badge status-badge--success">token: set</span>`
-      : `<span class="status-badge status-badge--warning">token: empty</span>`;
-    const officialAssemblerBadge = `<span class="status-badge status-badge--success">assembler: official</span>`;
-
-    const official = `
-	      <section class="settings-panel">
-		        <header class="settings-panel__header">
-		          <div class="flex-row flex-wrap">
-		            <span>Official</span>
-            ${completionUrlBadge}
-            ${tokenBadge}
-            ${officialAssemblerBadge}
-		          </div>
-	          <div class="flex-row" style="min-width:0;">
-	            <button class="btn btn--small" data-action="testOfficialGetModels" ${otRunning ? "disabled" : ""} title="/get-models">Test connection</button>
-	            ${otBadge}
-	            ${otTextHtml}
-	          </div>
-	        </header>
-	        <div class="settings-panel__body">
-	          <div class="form-grid">
-	            <div class="form-group">
-	              <label class="form-label" for="officialCompletionUrl">Completion URL</label>
-	              <input type="url" id="officialCompletionUrl" value="${escapeHtml(off.completionUrl ?? "")}" placeholder="https://acemcp.heroman.wtf/relay/" />
-	              <div class="text-muted text-xs">Default <span class="text-mono">https://acemcp.heroman.wtf/relay/</span>; private tenants fill in their own domain. Used for <span class="text-mono">/get-models</span> merging (and the official path requests).</div>
-	            </div>
-		            <div class="form-group">
-		              <div class="flex-between flex-row">
-		                <label class="form-label" for="officialApiToken">API Token</label>
-		                ${tokenBadge}
-		              </div>
-	              <div class="flex-row">
-	                <input type="password" id="officialApiToken" value="" placeholder="${off.apiToken ? "(set)" : "(empty)"}" />
-	                <button class="btn btn--icon btn--danger" data-action="clearOfficialToken" title="Clear token">✕</button>
-	              </div>
-	              <div class="text-muted text-xs">Register at <span class="text-mono">https://acemcp.heroman.wtf/login</span> and fill in your API Token; no keys are bundled or randomly assigned. Leave empty = no change; click ✕ = clear (applies after save).</div>
-		            </div>
-		          </div>
-		        </div>
-		      </section>
-		    `;
+    const officialAndContextHtml =
+      typeof ns.renderOfficialAndContextPanel === "function"
+        ? ns.renderOfficialAndContextPanel({ cfg: c, officialTest })
+        : typeof ns.renderContextInjectionPanel === "function"
+          ? ns.renderContextInjectionPanel({ cfg: c, officialTest })
+          : `<div class="text-muted text-xs">Official & Context Engine renderer missing</div>`;
 
     const providersHtml =
       typeof ns.renderProvidersPanel === "function"
@@ -237,11 +173,6 @@
       typeof ns.renderHistorySummaryPanel === "function"
         ? ns.renderHistorySummaryPanel({ cfg: c, providers })
         : `<div class="text-muted text-xs">historySummary renderer missing</div>`;
-
-    const contextInjectionHtml =
-      typeof ns.renderContextInjectionPanel === "function"
-        ? ns.renderContextInjectionPanel({ cfg: c })
-        : `<div class="text-muted text-xs">context injection renderer missing</div>`;
 
     const endpointRules =
       typeof ns.renderEndpointRulesPanel === "function"
@@ -299,15 +230,14 @@
               })();
 
     return `
-	      <div class="app-container">
-	        ${appHeader}
-	        ${official}
-        ${contextInjectionHtml}
+      <div class="app-container">
+        ${appHeader}
+        ${officialAndContextHtml}
         ${providersHtml}
         ${historySummaryHtml}
         ${endpointRules}
-	        ${selfTestHtml}
-	      </div>
+        ${selfTestHtml}
+      </div>
 	      ${modalHtml}
 	    `;
   };

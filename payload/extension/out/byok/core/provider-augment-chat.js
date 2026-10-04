@@ -31,7 +31,7 @@ function convertToolDefinitionsByProviderType(type, toolDefs) {
   if (t === "anthropic") return convertAnthropicTools(toolDefs);
   if (t === "openai_responses") return convertOpenAiResponsesTools(toolDefs);
   if (t === "gemini_ai_studio") return convertGeminiTools(toolDefs);
-  throw new Error(`未知 provider.type: ${t}（支持：${formatKnownProviderTypes()}）`);
+  throw new Error(`Unknown provider.type: ${t} (supported: ${formatKnownProviderTypes()})`);
 }
 
 function normalizeMaxAttempts(maxAttempts) {
@@ -170,7 +170,7 @@ async function completeAugmentChatTextByProviderType({
         requestDefaults: rd
       });
     }
-    throw new Error(`未知 provider.type: ${t}（支持：${formatKnownProviderTypes()}）`);
+    throw new Error(`Unknown provider.type: ${t} (supported: ${formatKnownProviderTypes()})`);
   };
 
   return await runWithContextRetry(async (rd) => await callOnce(rd), { requestDefaults, req, label: lab, abortSignal });
@@ -288,7 +288,7 @@ async function* streamAugmentChatChunksByProviderType({
           nodeIdStart
         });
       } else {
-        throw new Error(`未知 provider.type: ${t}（支持：${formatKnownProviderTypes()}）`);
+        throw new Error(`Unknown provider.type: ${t} (supported: ${formatKnownProviderTypes()})`);
       }
 
       const traced = traceIfNeeded(label, gen);
@@ -321,7 +321,7 @@ async function* streamAugmentChatChunksByProviderType({
     }
   }
 
-  throw new Error(`未知 provider.type: ${t}（支持：${formatKnownProviderTypes()}）`);
+  throw new Error(`Unknown provider.type: ${t} (supported: ${formatKnownProviderTypes()})`);
 }
 
 module.exports = { convertToolDefinitionsByProviderType, completeAugmentChatTextByProviderType, streamAugmentChatChunksByProviderType };

@@ -12,7 +12,7 @@ function makeEndpointErrorText(ep, err) {
   const label = normalizeString(ep) || "endpoint";
   const msg = err instanceof Error ? err.message : String(err);
   const m = normalizeString(msg) || "unknown error";
-  return `❌ ${label} 失败: ${m}`.trim();
+  return `❌ ${label} failed: ${m}`.trim();
 }
 
 async function* guardObjectStream({ ep, src, transform, makeErrorChunk, logMeta }) {

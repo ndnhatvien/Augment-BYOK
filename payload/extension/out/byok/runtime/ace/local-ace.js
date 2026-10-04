@@ -208,7 +208,7 @@ async function searchCce({ query, topK, confidenceThreshold, timeoutMs, abortSig
   const q = normalizeString(query);
   if (!q) return [];
   const url = joinBaseUrl(normalizeString(cceUrl) || DEFAULT_CCE_URL, "search");
-  if (!url) throw new Error("local ACE CCE URL 无效（无法请求 /search）");
+  if (!url) throw new Error("Invalid local ACE CCE URL (cannot request /search)");
 
   const payload = buildCceSearchPayload({ query: q, topK, confidenceThreshold });
   const resp = await safeFetch(

@@ -388,6 +388,36 @@ input[type="checkbox"] {
   line-height: 1;
 }
 
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vscode-foreground);
+  opacity: 0.75;
+  text-decoration: none;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  vertical-align: middle;
+}
+
+.icon-link:hover {
+  opacity: 1;
+  color: var(--vscode-textLink-foreground, #3794ff);
+}
+
+.icon-link svg {
+  display: block;
+}
+
+a.text-link {
+  color: var(--vscode-textLink-foreground, #3794ff);
+  text-decoration: none;
+}
+
+a.text-link:hover {
+  color: var(--vscode-textLink-activeForeground, #3794ff);
+  text-decoration: underline;
+}
+
 .btn--small,
 .btn.sm {
   font-size: 0.82em;
