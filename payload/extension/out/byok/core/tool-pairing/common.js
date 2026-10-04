@@ -4,7 +4,7 @@ const { normalizeString } = require("../../infra/util");
 const { truncateText, truncateTextMiddle } = require("../../infra/text");
 
 const TOOL_RESULT_MISSING_MESSAGE =
-  "未收到对应的 tool_result（可能是工具未执行/被禁用/权限不足/或历史中丢失）。请在缺失结果的前提下继续推理或改为不依赖该工具。";
+  "No corresponding tool_result received (the tool may not have executed, was disabled, had insufficient permissions, or was lost in history). Please continue reasoning without this result or avoid depending on this tool.";
 
 function normalizeRole(v) {
   return normalizeString(v).toLowerCase();

@@ -7,6 +7,10 @@ const { setRuntimeEnabled: setRuntimeEnabledPersisted } = require("../../config/
 const { clearHistorySummaryCacheAll } = require("../../core/augment-history-summary/auto");
 const { runSelfTest } = require("../../core/self-test/run");
 const { fetchOfficialGetModels } = require("../../runtime/official/get-models");
+const { fetchOfficialCodebaseRetrieval } = require("../../runtime/official/codebase-retrieval");
+const { fetchOfficialContextCanvasList } = require("../../runtime/official/context-canvas");
+const { fetchOfficialSearchExternalSources } = require("../../runtime/official/external-sources");
+const { searchCce } = require("../../runtime/ace/local-ace");
 const { fetchProviderModels } = require("../../providers/models");
 const { renderConfigPanelHtml } = require("./html");
 const { exportConfigWithDialog, importConfigWithDialog, runIoWithUiErrorBoundary } = require("../config-io");
@@ -161,41 +165,114 @@ function createHandlers({ vscode, ctx, cfgMgr, state, panel }) {
         post(panel, { type: "providerModelsFailed", idx, ...(requestId ? { requestId } : {}), error: `Fetch models failed: ${m}` });
       }
     },
-    testOfficialGetModels: async (msg) => {
+    testOfficialEndpoints: async (msg) => {
       const requestId = normalizeString(msg?.requestId);
       const cfg = msg && typeof msg === "object" && msg.config && typeof msg.config === "object" ? msg.config : cfgMgr.get();
       const off = cfg?.official && typeof cfg.official === "object" ? cfg.official : {};
       const completionUrl = normalizeString(off.completionUrl) || "https://acemcp.heroman.wtf/relay/";
       const apiToken = normalizeRawToken(off.apiToken);
+      const testCce = off.localAceEnabled === true;
+      const cceUrl = normalizeString(off.aceCceUrl);
 
+      const results = [];
+      const startedAtMs = Date.now();
+
+      // 1. /get-models
+      const t0 = Date.now();
       try {
-        if (!apiToken) {
-          throw new Error("Please register at https://acemcp.heroman.wtf/login and fill in the Official API Token");
-        }
-        const startedAtMs = Date.now();
-        const json = await fetchOfficialGetModels({ completionURL: completionUrl, apiToken, timeoutMs: 12000 });
-
-        const defaultModel = normalizeString(json.default_model ?? json.defaultModel);
-        const modelsCount = Array.isArray(json.models) ? json.models.length : 0;
-        const featureFlagsCount =
-          json.feature_flags && typeof json.feature_flags === "object" && !Array.isArray(json.feature_flags) ? Object.keys(json.feature_flags).length : 0;
-
-        const elapsedMs = Date.now() - startedAtMs;
-        if (requestId) debug("panel testOfficialGetModels OK", { requestId, modelsCount, featureFlagsCount, elapsedMs });
-
-        post(panel, {
-          type: "officialGetModelsOk",
-          ...(requestId ? { requestId } : {}),
-          modelsCount,
-          defaultModel,
-          featureFlagsCount,
-          elapsedMs
-        });
+        if (!apiToken) throw new Error("API Token is empty");
+        const json = await fetchOfficialGetModels({ completionURL: completionUrl, apiToken, timeoutMs: 8000 });
+        const count = Array.isArray(json?.models) ? json.models.length : 0;
+        const dm = normalizeString(json?.default_model ?? json?.defaultModel);
+        results.push({ endpoint: "/get-models", ok: true, elapsedMs: Date.now() - t0, detail: `models=${count}${dm ? `, default=${dm}` : ""}` });
       } catch (err) {
-        const m = err instanceof Error ? err.message : String(err);
-        warn("testOfficialGetModels failed:", requestId ? { requestId, error: m } : m);
-        post(panel, { type: "officialGetModelsFailed", ...(requestId ? { requestId } : {}), error: `Official /get-models failed: ${m}` });
+        results.push({ endpoint: "/get-models", ok: false, elapsedMs: Date.now() - t0, detail: err instanceof Error ? err.message : String(err) });
       }
+
+      // 2. /agents/codebase-retrieval
+      const t1 = Date.now();
+      try {
+        if (!apiToken) throw new Error("API Token is empty");
+        let wsPath = "";
+        try {
+          const vscode = require("vscode");
+          const wf = vscode?.workspace?.workspaceFolders;
+          if (Array.isArray(wf) && wf.length > 0) wsPath = wf[0]?.uri?.fsPath || "";
+        } catch {}
+        const ret = await fetchOfficialCodebaseRetrieval({
+          completionURL: completionUrl,
+          apiToken,
+          informationRequest: "health check",
+          blobs: { checkpoint_id: null, added_blobs: [], deleted_blobs: [] },
+          repoPath: wsPath,
+          maxOutputLength: 200,
+          timeoutMs: 8000
+        });
+        const len = typeof ret === "string" ? ret.length : 0;
+        results.push({ endpoint: "/agents/codebase-retrieval", ok: true, elapsedMs: Date.now() - t1, detail: len > 0 ? `ok (${len} chars)` : "ok (empty retrieval)" });
+      } catch (err) {
+        const raw = err instanceof Error ? err.message : String(err);
+        const isPath500 = raw.includes("500") && (raw.includes("repo_path") || raw.includes("path") || raw.includes("directory") || raw.includes("目录"));
+        const detail = isPath500 ? "500 (workspace path not found on remote relay)" : raw;
+        results.push({ endpoint: "/agents/codebase-retrieval", ok: false, elapsedMs: Date.now() - t1, detail });
+      }
+
+      // 3. /context-canvas/list
+      const t2 = Date.now();
+      try {
+        if (!apiToken) throw new Error("API Token is empty");
+        const json = await fetchOfficialContextCanvasList({ completionURL: completionUrl, apiToken, pageSize: 5, timeoutMs: 8000 });
+        const count = Array.isArray(json?.canvases) ? json.canvases.length : Array.isArray(json) ? json.length : 0;
+        const detail = json?.canvases || Array.isArray(json) ? `canvases=${count}` : (json?.status === "ok" ? "ok (relay)" : "ok");
+        results.push({ endpoint: "/context-canvas/list", ok: true, elapsedMs: Date.now() - t2, detail });
+      } catch (err) {
+        results.push({ endpoint: "/context-canvas/list", ok: false, elapsedMs: Date.now() - t2, detail: err instanceof Error ? err.message : String(err) });
+      }
+
+      // 4. /search-external-sources
+      const t3 = Date.now();
+      try {
+        if (!apiToken) throw new Error("API Token is empty");
+        const json = await fetchOfficialSearchExternalSources({ completionURL: completionUrl, apiToken, query: "health check", sourceTypes: [], timeoutMs: 8000 });
+        const count = Array.isArray(json?.sources) ? json.sources.length : Array.isArray(json?.results) ? json.results.length : 0;
+        const detail = json?.sources || json?.results ? `sources=${count}` : (json?.status === "ok" ? "ok (relay)" : "ok");
+        results.push({ endpoint: "/search-external-sources", ok: true, elapsedMs: Date.now() - t3, detail });
+      } catch (err) {
+        results.push({ endpoint: "/search-external-sources", ok: false, elapsedMs: Date.now() - t3, detail: err instanceof Error ? err.message : String(err) });
+      }
+
+      // 5. CCE /search (if local CCE enabled)
+      if (testCce) {
+        const t4 = Date.now();
+        try {
+          const res = await searchCce({ query: "test", topK: 1, confidenceThreshold: 0.1, timeoutMs: 4000, cceUrl });
+          results.push({ endpoint: "CCE /search", ok: true, elapsedMs: Date.now() - t4, detail: `hits=${Array.isArray(res) ? res.length : 0}` });
+        } catch (err) {
+          results.push({ endpoint: "CCE /search", ok: false, elapsedMs: Date.now() - t4, detail: err instanceof Error ? err.message : String(err) });
+        }
+      }
+
+      const elapsedMs = Date.now() - startedAtMs;
+      const allOk = results.length > 0 && results.every((r) => r.ok);
+      if (requestId) debug("panel testOfficialEndpoints finished", { requestId, allOk, resultsCount: results.length, elapsedMs });
+
+      post(panel, {
+        type: "officialEndpointsTested",
+        ...(requestId ? { requestId } : {}),
+        ok: allOk,
+        results,
+        elapsedMs
+      });
+
+      const gm = results.find((r) => r.endpoint === "/get-models");
+      if (gm && gm.ok) {
+        post(panel, { type: "officialGetModelsOk", ...(requestId ? { requestId } : {}), modelsCount: 0, elapsedMs: gm.elapsedMs });
+      } else if (gm) {
+        post(panel, { type: "officialGetModelsFailed", ...(requestId ? { requestId } : {}), error: gm.detail });
+      }
+    },
+    testOfficialGetModels: async (msg) => {
+      await handlers.testOfficialEndpoints(msg);
     },
     cancelSelfTest: async () => {
       if (!selfTestRunning || !selfTestController) {

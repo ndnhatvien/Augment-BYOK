@@ -9,7 +9,7 @@ function normalizeTimeoutMs(timeoutMs) {
 }
 
 function resolveProviderApiKey(provider, label) {
-  if (!provider || typeof provider !== "object") throw new Error(`${label} provider 无效`);
+  if (!provider || typeof provider !== "object") throw new Error(`${label} provider is invalid`);
   return normalizeRawToken(provider.apiKey);
 }
 
@@ -42,7 +42,7 @@ function formatRouteForLog(route, opts) {
 }
 
 function providerRequestContext(provider) {
-  if (!provider || typeof provider !== "object") throw new Error("BYOK provider 未选择");
+  if (!provider || typeof provider !== "object") throw new Error("No BYOK provider selected");
   const type = normalizeString(provider.type);
   const baseUrl = normalizeString(provider.baseUrl);
   const apiKey = resolveProviderApiKey(provider, providerLabel(provider));
@@ -51,7 +51,7 @@ function providerRequestContext(provider) {
 
   const requestDefaults =
     requestDefaultsRaw && typeof requestDefaultsRaw === "object" && !Array.isArray(requestDefaultsRaw) ? requestDefaultsRaw : {};
-  if (!apiKey && Object.keys(extraHeaders).length === 0) throw new Error(`${providerLabel(provider)} 未配置 api_key（且 headers 为空）`);
+  if (!apiKey && Object.keys(extraHeaders).length === 0) throw new Error(`${providerLabel(provider)} has no api_key configured (and headers are empty)`);
   return { type, baseUrl, apiKey, extraHeaders, requestDefaults };
 }
 

@@ -75,7 +75,7 @@ test("provider-text: unknown provider.type throws without network", async () => 
     },
     (err) => {
       const msg = err instanceof Error ? err.message : String(err);
-      return msg.includes("未知 provider.type") && msg.includes("openai_compatible") && msg.includes("gemini_ai_studio");
+      return msg.includes("Unknown provider.type") && msg.includes("openai_compatible") && msg.includes("gemini_ai_studio");
     }
   );
 

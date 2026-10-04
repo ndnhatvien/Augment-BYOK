@@ -2,7 +2,7 @@
 
 A single VSIX: routes **8 Augment LLM data-plane endpoints** to BYOK (with Streaming + tool use); all other endpoints keep official behavior; supports one-click runtime rollback (no Rust / external service needed).
 
-Default relay: `https://acemcp.heroman.wtf/relay/`. Before using official `/get-models` merging and official context injection, register at `https://acemcp.heroman.wtf/login` and fill in your own API Token; this project no longer bundles or randomly assigns keys.
+For official `/get-models` merging and official context injection, configure your private tenant / relay endpoint and API Token according to [ndnhatvien/Awesome-Context-Engineering](https://github.com/ndnhatvien/Awesome-Context-Engineering); this project no longer bundles or randomly assigns keys.
 
 ## Install (Recommended: Releases)
 
@@ -234,8 +234,8 @@ Beyond local CCE / official context, BYOK can inject context retrieved from exte
 
 #### 4.4 Official connection (for: /get-models merging; can also switch to a private tenant)
 
-- [x] `official.completionUrl`: default `https://acemcp.heroman.wtf/relay/` (switchable to a private tenant)
-- [x] `official.apiToken`: empty by default; register at `https://acemcp.heroman.wtf/login` and fill in your own API Token; clearing it skips official `/get-models` and context injection with one downgrade log
+- [x] `official.completionUrl`: private tenant / relay endpoint (see [ndnhatvien/Awesome-Context-Engineering](https://github.com/ndnhatvien/Awesome-Context-Engineering))
+- [x] `official.apiToken`: empty by default; configure according to [ndnhatvien/Awesome-Context-Engineering](https://github.com/ndnhatvien/Awesome-Context-Engineering) and fill in your own API Token; clearing it skips official `/get-models` and context injection with one downgrade log
 - [x] Official context injection entry points: `agents/codebase-retrieval` / `search-external-sources` / `context-canvas/list`
 
 #### 4.5 providers[] (BYOK upstream list)

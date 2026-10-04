@@ -88,7 +88,7 @@ async function completeTextByProviderType({
     const { systemInstruction, contents } = asGeminiContents(system, messages);
     return await geminiCompleteText({ baseUrl, apiKey, model, systemInstruction, contents, timeoutMs, abortSignal, extraHeaders, requestDefaults });
   }
-  throw new Error(`未知 provider.type: ${t}（支持：${formatKnownProviderTypes()}）`);
+  throw new Error(`Unknown provider.type: ${t} (supported: ${formatKnownProviderTypes()})`);
 }
 
 async function* streamTextDeltasByProviderType({
@@ -132,7 +132,7 @@ async function* streamTextDeltasByProviderType({
     yield* geminiStreamTextDeltas({ baseUrl, apiKey, model, systemInstruction, contents, timeoutMs, abortSignal, extraHeaders, requestDefaults });
     return;
   }
-  throw new Error(`未知 provider.type: ${t}（支持：${formatKnownProviderTypes()}）`);
+  throw new Error(`Unknown provider.type: ${t} (supported: ${formatKnownProviderTypes()})`);
 }
 
 module.exports = {

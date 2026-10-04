@@ -35,7 +35,7 @@ async function openAiResponsesCompleteText({ baseUrl, apiKey, model, instruction
   if (direct) return direct;
 
   const hasToolCall = output.some((it) => it && typeof it === "object" && it.type === "function_call");
-  if (hasToolCall) throw new Error("OpenAI(responses) 返回 function_call（当前调用不执行工具；请改用 /chat-stream）");
+  if (hasToolCall) throw new Error("OpenAI(responses) returned function_call (current call does not execute tools; please use /chat-stream)");
 
   // 兼容：部分 /responses 网关只支持 SSE（即使 stream=false 也可能返回非 JSON/空 JSON）。
   // 这里做一次“流式兜底”以提升 openai_responses provider 的鲁棒性。
@@ -48,7 +48,7 @@ async function openAiResponsesCompleteText({ baseUrl, apiKey, model, instruction
     if (s) return s;
   } catch (err) {
     const fallbackMsg = err instanceof Error ? err.message : String(err);
-    throw new Error(`OpenAI(responses) 响应缺少可解析文本（且 stream fallback 失败: ${fallbackMsg}）`.trim());
+    throw new Error(`OpenAI(responses) response missing parsable text (and stream fallback failed: ${fallbackMsg})`.trim());
   }
 
   const types = output
@@ -56,7 +56,7 @@ async function openAiResponsesCompleteText({ baseUrl, apiKey, model, instruction
     .filter(Boolean)
     .slice(0, 12)
     .join(",");
-  throw new Error(`OpenAI(responses) 响应缺少可解析文本（output_types=${types || "n/a"}）`.trim());
+  throw new Error(`OpenAI(responses) response missing parsable text (output_types=${types || "n/a"})`.trim());
 }
 
 async function* openAiResponsesStreamTextDeltas({ baseUrl, apiKey, model, instructions, input, timeoutMs, abortSignal, extraHeaders, requestDefaults }) {
@@ -83,9 +83,9 @@ async function* openAiResponsesStreamTextDeltas({ baseUrl, apiKey, model, instru
       yield text;
       return;
     }
-    throw new Error(`OpenAI(responses-stream) JSON 响应缺少可解析文本（content-type=${contentType || "unknown"}）`.trim());
+    throw new Error(`OpenAI(responses-stream) JSON response missing parsable text (content-type=${contentType || "unknown"})`.trim());
   }
-  await assertSseResponse(resp, { label: "OpenAI(responses-stream)", expectedHint: "请确认 baseUrl 指向 OpenAI /responses SSE" });
+  await assertSseResponse(resp, { label: "OpenAI(responses-stream)", expectedHint: "Please verify that baseUrl points to OpenAI /responses SSE" });
 
   const sse = makeSseJsonIterator(resp, { doneData: "[DONE]" });
   let emitted = 0;
@@ -122,7 +122,7 @@ async function* openAiResponsesStreamTextDeltas({ baseUrl, apiKey, model, instru
   }
   if (emitted === 0) {
     throw new Error(
-      `OpenAI(responses-stream) 未解析到任何 SSE delta（data_events=${sse.stats.dataEvents}, parsed_chunks=${sse.stats.parsedChunks}）；请检查 baseUrl 是否为 OpenAI SSE`.trim()
+      `OpenAI(responses-stream) parsed no SSE deltas (data_events=${sse.stats.dataEvents}, parsed_chunks=${sse.stats.parsedChunks}); please check if baseUrl is OpenAI SSE`.trim()
     );
   }
 }

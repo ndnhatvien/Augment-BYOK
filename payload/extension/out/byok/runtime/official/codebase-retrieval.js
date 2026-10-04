@@ -12,9 +12,9 @@ const { makeTextRequestNode, pickInjectionTargetArray, maybeInjectUserExtraTextP
 const OFFICIAL_CODEBASE_RETRIEVAL_MAX_OUTPUT_LENGTH = 20000;
 const OFFICIAL_CODEBASE_RETRIEVAL_TIMEOUT_MS = 12000;
 
-async function fetchOfficialCodebaseRetrieval({ completionURL, apiToken, informationRequest, blobs, maxOutputLength, timeoutMs, abortSignal }) {
+async function fetchOfficialCodebaseRetrieval({ completionURL, apiToken, informationRequest, blobs, maxOutputLength, timeoutMs, abortSignal, repoPath }) {
   const url = joinBaseUrl(normalizeString(completionURL), "agents/codebase-retrieval");
-  if (!url) throw new Error("completionURL 无效（无法请求官方 agents/codebase-retrieval）");
+  if (!url) throw new Error("Invalid completionURL (cannot request official agents/codebase-retrieval)");
   const headers = { "content-type": "application/json" };
   if (apiToken) headers.authorization = `Bearer ${apiToken}`;
   const max_output_length = Number.isFinite(Number(maxOutputLength)) && Number(maxOutputLength) > 0 ? Math.floor(Number(maxOutputLength)) : 20000;
@@ -24,6 +24,11 @@ async function fetchOfficialCodebaseRetrieval({ completionURL, apiToken, informa
     dialog: [],
     max_output_length
   };
+  const rPath = normalizeString(repoPath);
+  if (rPath) {
+    basePayload.repo_path = rPath;
+    basePayload.workspacePath = rPath;
+  }
   const payload = { ...basePayload, disable_codebase_retrieval: false, enable_commit_retrieval: false };
 
   const postOnce = async (p) => {
@@ -48,7 +53,7 @@ async function fetchOfficialCodebaseRetrieval({ completionURL, apiToken, informa
   if (!result.ok) throw new Error(`agents/codebase-retrieval ${result.status}: ${result.text}`.trim());
 
   const json = result.json;
-  if (!json || typeof json !== "object") throw new Error("agents/codebase-retrieval 响应不是 JSON 对象");
+  if (!json || typeof json !== "object") throw new Error("agents/codebase-retrieval response is not a JSON object");
   const formatted = normalizeString(json.formatted_retrieval ?? json.formattedRetrieval);
   return formatted;
 }
@@ -183,4 +188,8 @@ async function maybeInjectOfficialCodebaseRetrieval({ req, timeoutMs, abortSigna
   }
 }
 
-module.exports = { maybeInjectOfficialCodebaseRetrieval, maybeServeLocalAceAgentCodebaseRetrieval };
+module.exports = {
+  maybeInjectOfficialCodebaseRetrieval,
+  maybeServeLocalAceAgentCodebaseRetrieval,
+  fetchOfficialCodebaseRetrieval
+};

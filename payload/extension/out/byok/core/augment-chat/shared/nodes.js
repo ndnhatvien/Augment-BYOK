@@ -36,6 +36,10 @@ const {
 } = require("../../augment-node-format");
 
 const TOOL_RESULT_SYSTEM_HINT_SEPARATORS = [
+  "\n\n✔️Please remember",
+  "\n\n❌Please remember",
+  "✔️Please remember",
+  "❌Please remember",
   "\n\n✔️请记住",
   "\n\n❌请记住",
   "✔️请记住",

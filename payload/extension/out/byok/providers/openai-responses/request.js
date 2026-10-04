@@ -44,7 +44,7 @@ function buildOpenAiResponsesRequest({ baseUrl, apiKey, model, instructions, inp
   const url = joinBaseUrl(requireString(baseUrl, "OpenAI baseUrl"), "responses");
   const key = normalizeRawToken(apiKey);
   const extra = extraHeaders && typeof extraHeaders === "object" ? extraHeaders : {};
-  if (!key && Object.keys(extra).length === 0) throw new Error("OpenAI apiKey 未配置（且 headers 为空）");
+  if (!key && Object.keys(extra).length === 0) throw new Error("OpenAI apiKey not configured (and headers are empty)");
 
   const m = requireString(model, "OpenAI model");
   const rd = normalizeOpenAiResponsesRequestDefaults(requestDefaults);

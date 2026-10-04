@@ -33,7 +33,7 @@ function warnGetModelsOfficialSkippedOnce({ requestId, missing }) {
   if (GET_MODELS_OFFICIAL_SKIP_WARNED.has(key)) return;
   GET_MODELS_OFFICIAL_SKIP_WARNED.add(key);
   warn(
-    "get-models official fetch skipped: degraded=true network=skipped; using local BYOK model registry only. Configure official.apiToken after registering at https://acemcp.heroman.wtf/login.",
+    "get-models official fetch skipped: degraded=true network=skipped; using local BYOK model registry only. Configure official.apiToken (see https://github.com/ndnhatvien/Awesome-Context-Engineering).",
     { requestId, missing: list.length ? list : ["unknown"] }
   );
 }

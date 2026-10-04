@@ -54,8 +54,8 @@ test("patchWebviewTokenUsage: injects token usage display into assistant message
     assert.ok(out.includes('nd&&nd.type===10&&nd.token_usage'), "TOKEN_USAGE node detection missing");
     assert.ok(out.includes("fmtK"), "k formatter missing");
     assert.ok(out.includes("pct"), "percentage helper missing");
-    assert.ok(out.includes('"缓存读 "+cr+"%"'), "cache read percentage display missing");
-    assert.ok(out.includes('"缓存写 "+cw+"%"'), "cache creation percentage display missing");
+    assert.ok(out.includes('"Cache read "+cr+"%"'), "cache read percentage display missing");
+    assert.ok(out.includes('"Cache write "+cw+"%"'), "cache creation percentage display missing");
   });
 });
 

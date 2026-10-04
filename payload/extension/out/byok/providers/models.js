@@ -134,7 +134,7 @@ async function fetchProviderModels({ provider, timeoutMs, abortSignal }) {
     if (type === "openai_compatible" || type === "openai_responses") models = await fetchOpenAiCompatibleModels({ baseUrl, apiKey, extraHeaders, timeoutMs: t, abortSignal });
     else if (type === "anthropic") models = await fetchAnthropicModels({ baseUrl, apiKey, extraHeaders, timeoutMs: t, abortSignal });
     else if (type === "gemini_ai_studio") models = await fetchGeminiAiStudioModels({ baseUrl, apiKey, extraHeaders, timeoutMs: t, abortSignal });
-    else throw new Error(`未知 provider.type: ${type}（支持：${formatKnownProviderTypes()}）`);
+    else throw new Error(`Unknown provider.type: ${type} (supported: ${formatKnownProviderTypes()})`);
 
     debug(`[${label}] ok (${formatMs(nowMs() - t0)}) baseUrl=${baseUrlForLog(baseUrl)} models=${models.length}`);
     return models;

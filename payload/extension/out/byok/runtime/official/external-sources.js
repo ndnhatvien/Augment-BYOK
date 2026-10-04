@@ -9,7 +9,7 @@ const { makeTextRequestNode, pickInjectionTargetArray, maybeInjectUserExtraTextP
 
 async function fetchOfficialSearchExternalSources({ completionURL, apiToken, query, sourceTypes, timeoutMs, abortSignal }) {
   const url = joinBaseUrl(normalizeString(completionURL), "search-external-sources");
-  if (!url) throw new Error("completionURL 无效（无法请求官方 search-external-sources）");
+  if (!url) throw new Error("Invalid completionURL (cannot request official search-external-sources)");
   const headers = { "content-type": "application/json" };
   if (apiToken) headers.authorization = `Bearer ${apiToken}`;
   const payload = { query: String(query || ""), source_types: Array.isArray(sourceTypes) ? sourceTypes : [] };
@@ -129,4 +129,7 @@ async function maybeInjectOfficialExternalSources({ req, timeoutMs, abortSignal,
   }
 }
 
-module.exports = { maybeInjectOfficialExternalSources };
+module.exports = {
+  maybeInjectOfficialExternalSources,
+  fetchOfficialSearchExternalSources
+};
