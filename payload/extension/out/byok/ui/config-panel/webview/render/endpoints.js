@@ -19,13 +19,18 @@
     const ENDPOINT_MEANINGS_V1 = catalog.meanings && typeof catalog.meanings === "object" ? catalog.meanings : {};
 
     const ruleEndpoints = Object.keys(rulesObj).sort();
-    const knownEndpoints = uniq(ENDPOINT_GROUPS_V1.flatMap((g) => (Array.isArray(g?.endpoints) ? g.endpoints : [])));
-    const knownEndpointSet = new Set(knownEndpoints);
-    const unknownRuleEndpoints = uniq(ruleEndpoints.filter((ep) => ep && !knownEndpointSet.has(ep)));
+    const allKnownEndpoints = uniq(ENDPOINT_GROUPS_V1.flatMap((g) => (Array.isArray(g?.endpoints) ? g.endpoints : [])));
+    const allKnownEndpointSet = new Set(allKnownEndpoints);
+    const unknownRuleEndpoints = uniq(ruleEndpoints.filter((ep) => ep && !allKnownEndpointSet.has(ep)));
 
     const byokSupportedSet = new Set(Array.isArray(catalog.llmEndpoints) ? catalog.llmEndpoints : []);
 
-    const endpointGroups = ENDPOINT_GROUPS_V1.concat(
+    const visibleGroups = ENDPOINT_GROUPS_V1.filter(
+      (g) => !g?.hidden || (endpointSearch && Array.isArray(g?.endpoints) && g.endpoints.some((ep) => ep.toLowerCase().includes(endpointSearch.toLowerCase())))
+    );
+    const knownEndpoints = uniq(visibleGroups.flatMap((g) => (Array.isArray(g?.endpoints) ? g.endpoints : [])));
+
+    const endpointGroups = visibleGroups.concat(
       unknownRuleEndpoints.length
         ? [{ id: "other_from_config", label: "Others (from config)", endpoints: unknownRuleEndpoints }]
         : []
