@@ -23,6 +23,7 @@
     {
       id: "remote_agents",
       label: "Remote Agents (4)",
+      hidden: true,
       endpoints: [
         "/remote-agents/list",
         "/remote-agents/list-stream",
@@ -61,6 +62,7 @@
     {
       id: "cloud_agents_experts",
       label: "Cloud Agents / Experts (3)",
+      hidden: true,
       endpoints: [
         "/cloud-agents/agents/send-message",
         "/cloud-agents/agents/rename",
@@ -70,6 +72,7 @@
     {
       id: "auth_subscription",
       label: "Account / Subscription / Permissions (5)",
+      hidden: true,
       endpoints: [
         "/token",
         "/get-credit-info",
@@ -81,6 +84,7 @@
     {
       id: "feedback_telemetry_debug",
       label: "Feedback / Telemetry / Debug (10)",
+      hidden: true,
       endpoints: [
         "/chat-feedback",
         "/client-metrics",
@@ -97,6 +101,7 @@
     {
       id: "notifications",
       label: "Notifications (2)",
+      hidden: true,
       endpoints: [
         "/notifications/read",
         "/notifications/mark-as-read"

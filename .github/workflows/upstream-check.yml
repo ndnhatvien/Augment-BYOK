@@ -72,8 +72,23 @@ jobs:
             dist/upstream.lock.json
             upstream.lock.json
 
+      - name: Detect upstream change
+        id: detect
+        run: |
+          if git status --porcelain -- upstream.lock.json | grep -q .; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create PR if upstream changed
-        if: always()
+        # Skip PR attempt when the lock file is untouched: avoids hitting
+        # the "GitHub Actions is not permitted to create or approve pull
+        # requests" API error on repos without that setting/PAT.
+        # When upstream really changed, this step still needs either the repo
+        # setting "Allow GitHub Actions to create and approve pull requests"
+        # or a PAT in secrets.UPSTREAM_PR_TOKEN.
+        if: steps.detect.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           # Prefer a dedicated PAT (fine-grained) when repo/org blocks PR creation via GITHUB_TOKEN.
