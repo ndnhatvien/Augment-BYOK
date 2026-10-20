@@ -1,7 +1,7 @@
 {
   "upstream": {
-    "version": "0.904.1",
+    "version": "0.905.0",
     "url": "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/augment/vsextensions/vscode-augment/latest/vspackage",
-    "sha256": "f8bc24e3fc434487799220937b41cd4c2f8a50d3070c67de422d7f27b5a9d6ab"
+    "sha256": "336a87f9935217762d79f1942bc0e28ee5e7deede1d8fc8a7d03467a4216945d"
   }
 }
